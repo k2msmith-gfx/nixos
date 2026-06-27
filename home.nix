@@ -3,8 +3,6 @@
 {
   home.stateVersion = "26.05";
 
-  xdg.configFile."niri/config.kdl".source = ./niri/config.kdl;
-
   programs.home-manager.enable = true;
 
   programs.bash = {
@@ -17,12 +15,27 @@
       grep = "grep --color=auto";
       rg   = "rg --smart-case";
       g    = "git";
+
+      # NixOS rebuild
+      nswitch = "sudo nixos-rebuild switch --flake ~/nixos#kevinix";
+      nboot   = "sudo nixos-rebuild boot --flake ~/nixos#kevinix";
+      ntest   = "sudo nixos-rebuild test --flake ~/nixos#kevinix";
+      nbuild  = "sudo nixos-rebuild build --flake ~/nixos#kevinix";
+      ncheck  = "sudo nixos-rebuild dry-build --flake ~/nixos#kevinix";
+
+      # Nix misc
+      nup     = "nix flake update ~/nixos";
+      ngc     = "sudo nix-collect-garbage -d";
+      nrepl   = "nix repl '<nixpkgs>'";
+      nsearch = "nix search nixpkgs";
     };
     sessionVariables = {
       EDITOR = "nvim";
       VISUAL = "nvim";
     };
     initExtra = ''
+      export PATH="$HOME/.config/emacs/bin:$PATH"
+
       # Prompt: user@host:dir $
       PS1='\[\e[1;32m\]\u@\h\[\e[0m\]:\[\e[1;34m\]\w\[\e[0m\]\$ '
 
@@ -59,6 +72,9 @@
     rustup
     sbcl
 
+    # Language servers
+    nixd
+
     # CLI utilities
     ripgrep
     fd
@@ -71,6 +87,8 @@
     thunar
     google-chrome
   ];
+
+  xdg.configFile."niri/config.kdl".source = ./niri/config.kdl;
 
   programs.direnv = {
     enable = true;
@@ -125,7 +143,6 @@
         blink_interval = 500;
       };
       selection.save_to_clipboard = true;
-      terminal.shell = { program = "bash"; };
     };
   };
 }

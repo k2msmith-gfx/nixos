@@ -84,6 +84,9 @@
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
   security.rtkit.enable = true;
+  security.sudo.extraConfig = ''
+    Defaults timestamp_timeout=60
+  '';
   services.pipewire = {
     enable = true;
     alsa.enable = true;
@@ -116,10 +119,7 @@
     isNormalUser = true;
     description = "Kevin Smith";
     extraGroups = [ "networkmanager" "wheel" ];
-    packages = with pkgs; [
-      # kdePackages.kate
-    #  thunderbird
-    ];
+    packages = [];
   };
 
   # Install firefox.

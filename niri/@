@@ -16,17 +16,24 @@ input {
     mouse {
         accel-speed 0.0
     }
+    focus-follows-mouse
 }
 
 layout {
     gaps 8
 
     focus-ring {
-        width 1
         active-color   "#bd93f9"
-        inactive-color "#44475a"
+        inactive-color "#282a36"
+        urgent-color   "#ff5555"
     }
 
+    border {
+	width 2
+        active-color   "#bd93f9"
+        inactive-color "#282a36"
+        urgent-color   "#ff5555"
+    }
 
     shadow {
         color "#282a3670"
@@ -59,9 +66,7 @@ screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 binds {
     // Applications
     Mod+Return { spawn "alacritty"; }
-    Mod+Space hotkey-overlay-title="Toggle Launcher" {
-    spawn-sh "noctalia-shell ipc call launcher toggle";
-}
+    Mod+D { spawn "fuzzel"; }
 
     // Window management
     Mod+Q { close-window; }
