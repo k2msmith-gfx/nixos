@@ -17,7 +17,6 @@
     cursor-cli
 
     # Terminals
-    kitty
     ghostty
 
     # Fonts

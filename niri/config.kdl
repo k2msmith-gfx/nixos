@@ -59,7 +59,7 @@ screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
 
 binds {
     // Applications
-    Mod+Return { spawn "alacritty"; }
+    Mod+Return { spawn "kitty"; }
     Mod+Space hotkey-overlay-title="Toggle Launcher" {
         spawn-sh "noctalia-shell ipc call launcher toggle";
     }
