@@ -2,7 +2,7 @@
 
 {
   programs.bash.shellAliases = {
-    nswitch = "darwin-rebuild switch --flake ~/nixos#kevmac";
+    nswitch = "sudo darwin-rebuild switch --flake ~/nixos#kevmac";
     nbuild  = "darwin-rebuild build --flake ~/nixos#kevmac";
   };
 
@@ -17,7 +17,7 @@
       rg      = "rg --smart-case";
       g       = "git";
 
-      nswitch = "darwin-rebuild switch --flake ~/nixos#kevmac";
+      nswitch = "sudo darwin-rebuild switch --flake ~/nixos#kevmac";
       nbuild  = "darwin-rebuild build --flake ~/nixos#kevmac";
     };
     sessionVariables = {
