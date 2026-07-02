@@ -10,7 +10,7 @@
     };
 
     nix-darwin = {
-      url = "github:LnL7/nix-darwin";
+      url = "github:LnL7/nix-darwin/nix-darwin-26.05";
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
@@ -47,7 +47,8 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
-          home-manager.users.kevin = {
+          home-manager.backupFileExtension = "backup";
+          home-manager.users.kevinsmith = {
             imports = [ ./home/common.nix ./home/darwin.nix ];
           };
         }
