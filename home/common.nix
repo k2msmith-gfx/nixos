@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 
 {
   imports = [ ./neovim.nix ];
@@ -63,6 +63,25 @@
     pandoc
     viu
   ];
+
+  services.syncthing = {
+    enable = true;
+    # Step 2 (after running on all machines): add device IDs and folder config here.
+    # Get this machine's ID with: syncthing cli show system | grep myID
+    # Or open http://localhost:8384 in a browser.
+    #
+    # settings = {
+    #   folders."claude-memory" = {
+    #     path = "${config.home.homeDirectory}/.claude/projects";
+    #     devices = [ "kevinix" "kevmac" "kevmac2" ];
+    #   };
+    #   devices = {
+    #     "kevinix"  = { id = "XXXXX-XXXXX-..."; };
+    #     "kevmac"   = { id = "XXXXX-XXXXX-..."; };
+    #     "kevmac2"  = { id = "XXXXX-XXXXX-..."; };
+    #   };
+    # };
+  };
 
   programs.direnv = {
     enable = true;
