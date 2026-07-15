@@ -2,6 +2,7 @@
 
 let
   projectSlug = (builtins.replaceStrings [ "/" ] [ "-" ] config.home.homeDirectory) + "-nixos";
+  rayProjectSlug = builtins.replaceStrings [ "/" ] [ "-" ] (config.home.homeDirectory + "/Documents/devel/rust/ray");
 in
 {
   imports = [ ./neovim.nix ];
@@ -70,6 +71,16 @@ in
   home.activation.claudeMemoryLink = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     target="${config.home.homeDirectory}/nixos/memory"
     link="${config.home.homeDirectory}/.claude/projects/${projectSlug}/memory"
+    $DRY_RUN_CMD mkdir -p "$(dirname "$link")"
+    if [ "$(readlink "$link" 2>/dev/null)" != "$target" ]; then
+      $DRY_RUN_CMD rm -rf "$link"
+      $DRY_RUN_CMD ln -s "$target" "$link"
+    fi
+  '';
+
+  home.activation.claudeRayMemoryLink = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    target="${config.home.homeDirectory}/nixos/memory-ray"
+    link="${config.home.homeDirectory}/.claude/projects/${rayProjectSlug}/memory"
     $DRY_RUN_CMD mkdir -p "$(dirname "$link")"
     if [ "$(readlink "$link" 2>/dev/null)" != "$target" ]; then
       $DRY_RUN_CMD rm -rf "$link"
