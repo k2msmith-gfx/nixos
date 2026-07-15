@@ -48,6 +48,24 @@
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
           home-manager.backupFileExtension = "backup";
+          home-manager.extraSpecialArgs = { nixSystem = "kevmac"; };
+          home-manager.users.kevinsmith = {
+            imports = [ ./home/common.nix ./home/darwin.nix ];
+          };
+        }
+      ];
+    };
+
+    darwinConfigurations.kevmini = nix-darwin.lib.darwinSystem {
+      specialArgs = { inherit inputs; };
+      modules = [
+        ./modules/darwin/system.nix
+        home-manager.darwinModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.backupFileExtension = "backup";
+          home-manager.extraSpecialArgs = { nixSystem = "kevmini"; };
           home-manager.users.kevinsmith = {
             imports = [ ./home/common.nix ./home/darwin.nix ];
           };

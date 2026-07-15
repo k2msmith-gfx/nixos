@@ -7,8 +7,8 @@ Flake-based system config for 3 machines: 1 NixOS, 2 macOS (aarch64-darwin).
 | Host | Platform | Username | Home |
 |------|----------|----------|------|
 | `kevinix` | NixOS x86_64 (Lenovo laptop) | `kevin` | `/home/kevin` |
-| `kevmac` | macOS aarch64 (nix-darwin) | `kevinsmith` | `/Users/kevinsmith` |
-| _(third machine not yet in flake)_ | macOS aarch64 | `kevinsmith` | `/Users/kevinsmith` |
+| `kevmac` | macOS aarch64 (nix-darwin, MacBook) | `kevinsmith` | `/Users/kevinsmith` |
+| `kevmini` | macOS aarch64 (nix-darwin, Mac mini) | `kevinsmith` | `/Users/kevinsmith` |
 
 ## File Layout
 
@@ -37,10 +37,10 @@ nbuild    # build only, don't activate
 ncheck    # dry-build (syntax/eval check)
 ```
 
-**macOS (kevmac):**
+**macOS (kevmac / kevmini):**
 ```bash
-nswitch   # sudo -H darwin-rebuild switch --flake ~/nixos#kevmac
-nbuild    # darwin-rebuild build --flake ~/nixos#kevmac
+nswitch   # sudo -H darwin-rebuild switch --flake ~/nixos#<hostname>
+nbuild    # darwin-rebuild build --flake ~/nixos#<hostname>
 ```
 
 **Flake inputs:**
@@ -48,6 +48,15 @@ nbuild    # darwin-rebuild build --flake ~/nixos#kevmac
 nup       # nix flake update ~/nixos  (update all inputs)
 ngc       # sudo nix-collect-garbage -d
 ```
+
+## Claude Memory Sync
+
+Auto-memory files live in `memory/` (git-tracked). Each machine's Claude project memory path is symlinked there via `home.file` in `common.nix`:
+
+- macOS: `~/.claude/projects/-Users-kevinsmith-nixos/memory` → `~/nixos/memory`
+- Linux: `~/.claude/projects/-home-kevin-nixos/memory` → `~/nixos/memory`
+
+Memories sync via `git pull` / `git push` — no extra tooling needed. After adding a memory on one machine, commit and push `memory/`; pull on others.
 
 ## Key Conventions
 

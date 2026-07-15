@@ -1,5 +1,8 @@
-{ pkgs, config, ... }:
+{ pkgs, config, lib, ... }:
 
+let
+  projectSlug = (builtins.replaceStrings [ "/" ] [ "-" ] config.home.homeDirectory) + "-nixos";
+in
 {
   imports = [ ./neovim.nix ];
 
@@ -64,24 +67,15 @@
     viu
   ];
 
-  services.syncthing = {
-    enable = true;
-    # Step 2 (after running on all machines): add device IDs and folder config here.
-    # Get this machine's ID with: syncthing cli show system | grep myID
-    # Or open http://localhost:8384 in a browser.
-    #
-    # settings = {
-    #   folders."claude-memory" = {
-    #     path = "${config.home.homeDirectory}/.claude/projects";
-    #     devices = [ "kevinix" "kevmac" "kevmac2" ];
-    #   };
-    #   devices = {
-    #     "kevinix"  = { id = "XXXXX-XXXXX-..."; };
-    #     "kevmac"   = { id = "XXXXX-XXXXX-..."; };
-    #     "kevmac2"  = { id = "XXXXX-XXXXX-..."; };
-    #   };
-    # };
-  };
+  home.activation.claudeMemoryLink = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    target="${config.home.homeDirectory}/nixos/memory"
+    link="${config.home.homeDirectory}/.claude/projects/${projectSlug}/memory"
+    $DRY_RUN_CMD mkdir -p "$(dirname "$link")"
+    if [ "$(readlink "$link" 2>/dev/null)" != "$target" ]; then
+      $DRY_RUN_CMD rm -rf "$link"
+      $DRY_RUN_CMD ln -s "$target" "$link"
+    fi
+  '';
 
   programs.direnv = {
     enable = true;
