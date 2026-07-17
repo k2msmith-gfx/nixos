@@ -16,6 +16,7 @@
       grep    = "grep --color=auto";
       rg      = "rg --smart-case";
       g       = "git";
+      dv      = "cd ~/Documents/devel/rust/ray";
 
       nswitch = "sudo -H darwin-rebuild switch --flake ~/nixos#${nixSystem}";
       nbuild  = "darwin-rebuild build --flake ~/nixos#${nixSystem}";
