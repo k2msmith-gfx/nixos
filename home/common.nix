@@ -69,6 +69,15 @@ in
     viu
   ];
 
+  programs.bash.sessionVariables.STEEL_HOME = "${config.home.homeDirectory}/.local/share/steel";
+
+  home.activation.steelHome = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    $DRY_RUN_CMD mkdir -p "${config.home.homeDirectory}/.local/share/steel"
+    $DRY_RUN_CMD ${pkgs.rsync}/bin/rsync -a --no-perms --delete \
+      "${pkgs.steel}/lib/steel/" \
+      "${config.home.homeDirectory}/.local/share/steel/"
+  '';
+
   home.activation.claudeMemoryLink = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     target="${config.home.homeDirectory}/nixos/memory"
     link="${config.home.homeDirectory}/.claude/projects/${projectSlug}/memory"

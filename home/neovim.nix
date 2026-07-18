@@ -109,11 +109,8 @@
       vim.filetype.add({ extension = { steel = "scheme" } })
 
       -- Steel language server
-      -- STEEL_HOME must be writable; the Nix wrapper sets it to the store (read-only)
-      -- but uses setenv(..., 0) so we can override it here.
       vim.lsp.config("steel_ls", {
         cmd = { "steel-language-server" },
-        cmd_env = { STEEL_HOME = vim.fn.expand("~/.local/share/steel") },
         filetypes = { "scheme" },
         root_markers = { "steel.toml", ".git" },
       })
