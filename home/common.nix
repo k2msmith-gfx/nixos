@@ -57,6 +57,7 @@ in
     rustup
     sbcl
     janet
+    steel
 
     # CLI utilities
     ripgrep
