@@ -10,6 +10,7 @@
     extraPackages = with pkgs; [
       rust-analyzer
       nixd
+      steel-language-server
     ];
 
     initLua = ''
@@ -69,7 +70,6 @@
       -- LSP (neovim 0.11+ built-in API)
       local caps = require("cmp_nvim_lsp").default_capabilities()
       vim.lsp.config("*", { capabilities = caps })
-      vim.lsp.enable({ "rust_analyzer", "nixd" })
 
       vim.api.nvim_create_autocmd("LspAttach", {
         callback = function(ev)
@@ -104,6 +104,24 @@
 
       -- Clear search highlight
       vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>")
+
+      -- Steel Scheme: treat .steel files as scheme
+      vim.filetype.add({ extension = { steel = "scheme" } })
+
+      -- Steel language server
+      -- STEEL_HOME must be writable; the Nix wrapper sets it to the store (read-only)
+      -- but uses setenv(..., 0) so we can override it here.
+      vim.lsp.config("steel_ls", {
+        cmd = { "steel-language-server" },
+        cmd_env = { STEEL_HOME = vim.fn.expand("~/.local/share/steel") },
+        filetypes = { "scheme" },
+        root_markers = { "steel.toml", ".git" },
+      })
+      vim.lsp.enable({ "rust_analyzer", "nixd", "steel_ls" })
+
+      -- Conjure: use steel binary for scheme REPL
+      vim.g["conjure#client#scheme#stdio#command"]        = "steel"
+      vim.g["conjure#client#scheme#stdio#prompt_pattern"] = "λ > "
     '';
   };
 

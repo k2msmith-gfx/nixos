@@ -14,6 +14,7 @@ Neovim is configured in `home/neovim.nix`, imported via `home/common.nix`, so bo
 - **Common Lisp (SBCL)** — Conjure via Swank on port 4005, treesitter (`commonlisp` parser)
 - **Janet** — Conjure (not yet tested end-to-end), treesitter (`janet_simple` parser)
 - **Nix** — LSP via `nixd`, treesitter
+- **Steel Scheme** — LSP via `steel-language-server`, Conjure stdio REPL (`steel` binary, prompt `λ > `), `.steel` files mapped to `scheme` filetype, treesitter via `scheme` parser
 - **Treesitter only** — scheme, lua, toml, bash, markdown, markdown_inline
 
 ## SBCL + Conjure workflow
@@ -42,8 +43,7 @@ Then just run `sbcl` — Conjure auto-connects when a `.lisp` file is opened.
 ## LSP
 Uses `vim.lsp.config` + `vim.lsp.enable` (neovim 0.11+ built-in API). nvim-lspconfig was dropped — deprecated on neovim 0.12.3.
 
-## Why: Scheme REPL not working
-Guile stdio integration with Conjure was unreliable (prompt pattern issues, value not captured). MIT Scheme not available on macOS. Chicken Scheme was tried but abandoned. Left out for now — Janet is the alternative Lisp with Conjure.
+## Scheme REPL history
+Guile stdio integration with Conjure was unreliable (prompt pattern issues, value not captured). MIT Scheme not available on macOS. Chicken Scheme was tried but abandoned.
 
-**Why:** User is learning Scheme but Conjure's scheme stdio client is flaky on macOS.
-**How to apply:** If revisiting Scheme+Conjure, consider socket-based REPL or a different Scheme. Guile outputs `$N = value` correctly when piped but Conjure's capture is unreliable.
+Steel Scheme REPL added (2026-07-18): Conjure stdio client pointing at `steel` binary with prompt pattern `"λ > "`. Not yet tested end-to-end — if prompt pattern is wrong, it will need adjustment by running `steel` and observing the actual prompt string.
