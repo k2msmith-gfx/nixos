@@ -37,7 +37,7 @@ See also the sample scene DSL written in this session (in conversation history).
 | Language | Full Common Lisp (CLOS, macros, ANSI stdlib) | Scheme (less expressive) |
 | Native compilation | Yes — `(compile 'fn)` → C | No |
 
-Middle ground option: ship scene DSL in Steel (easy for contributors), keep ECL opt-in for texture/shader authoring where performance and live REPL matter most.
+**Decision: ECL only.** Steel's only advantage was easier setup, but bundling slynk and making it opt-in eliminates that. ECL wins on every technical dimension. One language, not two.
 
 **Slynk bundling plan** (for contributor portability):
 - Current setup hardcodes Doom Emacs path to slynk-loader.lisp — breaks for anyone without Doom/SLY
