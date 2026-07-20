@@ -26,6 +26,19 @@ Key Ray types to map (from `~/devel/ray/src/`):
 See `~/devel/ecl-test` for the FFI setup (bindgen, build.rs, flake.nix) that can be ported into Ray.
 See also the sample scene DSL written in this session (in conversation history).
 
+**Steel vs ECL tradeoffs:**
+
+| | ECL | Steel |
+|---|---|---|
+| FFI | bindgen + C headers required | Pure Rust, zero FFI |
+| Performance | ~0.35 µs/call (native compiled) | ~0.73 µs/call (bytecode only) |
+| Live REPL | Yes — Slynk/SLY inside running process | No — edit file + restart |
+| Contributor setup | Needs ECL, optional Emacs/SLY | Just `cargo add steel` |
+| Language | Full Common Lisp (CLOS, macros, ANSI stdlib) | Scheme (less expressive) |
+| Native compilation | Yes — `(compile 'fn)` → C | No |
+
+Middle ground option: ship scene DSL in Steel (easy for contributors), keep ECL opt-in for texture/shader authoring where performance and live REPL matter most.
+
 **Slynk bundling plan** (for contributor portability):
 - Current setup hardcodes Doom Emacs path to slynk-loader.lisp — breaks for anyone without Doom/SLY
 - Current contrib errors (sly-quicklisp etc.) are Doom-specific; vanilla SLIME users won't hit them but the fix shouldn't be editor-dependent
