@@ -2,6 +2,12 @@
 
 (package! eat)
 
+;; These SLY contribs require Quicklisp/ASDF which aren't present in embedded ECL.
+(package! sly-quicklisp :disable t)
+(package! sly-asdf :disable t)
+(package! sly-stepper :disable t)
+(package! sly-macrostep :disable t)
+
 (package! claude-code
   :recipe (:host github :repo "stevemolitor/claude-code.el" :files ("*.el")))
 

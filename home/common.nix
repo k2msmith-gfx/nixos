@@ -63,6 +63,7 @@ in
     nil                 # Nix language server
 
     # CLI utilities
+    gh
     ripgrep
     fd
     yazi
