@@ -25,3 +25,11 @@ Key Ray types to map (from `~/devel/ray/src/`):
 
 See `~/devel/ecl-test` for the FFI setup (bindgen, build.rs, flake.nix) that can be ported into Ray.
 See also the sample scene DSL written in this session (in conversation history).
+
+**Slynk bundling plan** (for contributor portability):
+- Current setup hardcodes Doom Emacs path to slynk-loader.lisp — breaks for anyone without Doom/SLY
+- Current contrib errors (sly-quicklisp etc.) are Doom-specific; vanilla SLIME users won't hit them but the fix shouldn't be editor-dependent
+- Solution: bundle slynk sources inside the Ray repo (or as a git submodule), load from a relative path
+- Only include core slynk contribs that work with embedded ECL — no quicklisp, no asdf
+- Make slynk optional (e.g. `--slynk-port 4005` flag) so contributors without Emacs aren't forced to use it
+- Works with both SLY and SLIME (same slynk backend), so contributor editor choice doesn't matter
