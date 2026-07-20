@@ -59,6 +59,9 @@ in
     janet
     steel
 
+    # LSP servers
+    nil                 # Nix language server
+
     # CLI utilities
     ripgrep
     fd
@@ -97,6 +100,10 @@ in
       $DRY_RUN_CMD ln -s "$target" "$link"
     fi
   '';
+
+  xdg.configFile."doom/init.el".source     = ../doom/init.el;
+  xdg.configFile."doom/config.el".source   = ../doom/config.el;
+  xdg.configFile."doom/packages.el".source = ../doom/packages.el;
 
   programs.direnv = {
     enable = true;
