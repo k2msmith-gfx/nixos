@@ -36,6 +36,10 @@
 
 (setq inferior-lisp-program "sbcl")
 
+(after! sly
+  (setq sly-contribs (cl-set-difference sly-contribs
+                        '(sly-quicklisp sly-asdf sly-stepper sly-macrostep))))
+
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
