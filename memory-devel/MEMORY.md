@@ -5,3 +5,4 @@
 - [ray-steel-poc](project_ray_steel_poc.md) — Steel (Scheme) scene description + TCP eval server (port 4006); Stage 1+2+3+4 done; 4.1× Lambert overhead; extract_value hot-call (0.17 µs add, 0.67 µs tex); pure cargo build
 - [ray-janet-poc](project_ray_janet_poc.md) — Janet 1.41 scene description + TCP eval server (port 4007); Stage 1+2+3+4 done; 0.9× Lambert overhead (fiber_reset); tex=0.27 µs; pixel-perfect; Nix dev shell required
 - [ray POC collaboration feedback](feedback_ray_poc_collaboration.md) — stage-by-stage confirmation, honest assessments wanted, one-word approval means implement directly
+- [ray next steps](project_ray_next_steps.md) — next focus: Emacs integration for Janet and/or ECL; live shader editing from Emacs
