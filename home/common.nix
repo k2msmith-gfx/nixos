@@ -1,8 +1,11 @@
 { pkgs, config, lib, ... }:
 
 let
-  projectSlug = (builtins.replaceStrings [ "/" ] [ "-" ] config.home.homeDirectory) + "-nixos";
+  projectSlug    = (builtins.replaceStrings [ "/" ] [ "-" ] config.home.homeDirectory) + "-nixos";
   rayProjectSlug = builtins.replaceStrings [ "/" ] [ "-" ] (config.home.homeDirectory + "/Documents/devel/rust/ray");
+  # devel memories: Linux works from ~/devel, macOS from ~/Documents/devel/rust
+  develSlugLinux  = builtins.replaceStrings [ "/" ] [ "-" ] (config.home.homeDirectory + "/devel");
+  develSlugDarwin = builtins.replaceStrings [ "/" ] [ "-" ] (config.home.homeDirectory + "/Documents/devel/rust");
 in
 {
   imports = [ ./neovim.nix ];
@@ -95,6 +98,28 @@ in
   home.activation.claudeRayMemoryLink = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     target="${config.home.homeDirectory}/nixos/memory-ray"
     link="${config.home.homeDirectory}/.claude/projects/${rayProjectSlug}/memory"
+    $DRY_RUN_CMD mkdir -p "$(dirname "$link")"
+    if [ "$(readlink "$link" 2>/dev/null)" != "$target" ]; then
+      $DRY_RUN_CMD rm -rf "$link"
+      $DRY_RUN_CMD ln -s "$target" "$link"
+    fi
+  '';
+
+  # devel project memories — Linux ~/devel and macOS ~/Documents/devel/rust
+  # both point to the same memory-devel directory so memories sync across machines.
+  home.activation.claudeDevelMemoryLinkLinux = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    target="${config.home.homeDirectory}/nixos/memory-devel"
+    link="${config.home.homeDirectory}/.claude/projects/${develSlugLinux}/memory"
+    $DRY_RUN_CMD mkdir -p "$(dirname "$link")"
+    if [ "$(readlink "$link" 2>/dev/null)" != "$target" ]; then
+      $DRY_RUN_CMD rm -rf "$link"
+      $DRY_RUN_CMD ln -s "$target" "$link"
+    fi
+  '';
+
+  home.activation.claudeDevelMemoryLinkDarwin = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    target="${config.home.homeDirectory}/nixos/memory-devel"
+    link="${config.home.homeDirectory}/.claude/projects/${develSlugDarwin}/memory"
     $DRY_RUN_CMD mkdir -p "$(dirname "$link")"
     if [ "$(readlink "$link" 2>/dev/null)" != "$target" ]; then
       $DRY_RUN_CMD rm -rf "$link"
