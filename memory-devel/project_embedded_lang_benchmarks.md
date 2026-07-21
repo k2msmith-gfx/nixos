@@ -12,7 +12,7 @@ Motivation: evaluating which language to use for user-defined shaders in a ray t
 
 **Why:** The ray POC needs a scripting layer for hot shader functions called per-ray. The compile-once / call-many (hot-call) path matters most — parse+eval per ray is never viable.
 
-**How to apply:** ECL leads shader-math hot-call (0.09–0.12 µs). Janet is second (0.23–0.27 µs). Steel is the pure-Rust sweet spot (0.17–0.69 µs). LuaJIT is **disqualified** — no JIT on ARM64/Apple Silicon. All three POCs (ECL, Steel, Janet) have completed Stage 4 optimizations.
+**How to apply:** ECL leads shader-math hot-call (tex=0.09 µs, dot_cos=0.12 µs). Janet is second (0.23–0.27 µs). Steel is the pure-Rust sweet spot (0.17–0.69 µs). LuaJIT is **disqualified** — no JIT on ARM64/Apple Silicon. All three POCs (ECL, Steel, Janet) have completed Stage 4 optimizations.
 
 ## Repos (all under k2msmith-gfx GitHub org)
 
@@ -51,8 +51,8 @@ Five functions measured across two call paths each:
 | (+ 1 2)       | 2.08     | 0.17  | 0.14  | 1.26     | —         | 0.14  |
 | factorial(20) | 3.35     | 2.44  | 22.1  | **0.24** | 43.0      | 1.85  |
 | sum-to(1000)  | 6.53     | 228   | 179   | **1.40** | 884       | 22.7  |
-| tex(u,v)      | **0.12** | 0.67  | 1.48  | 0.14     | 2.44      | 0.27  |
-| dot_cos       | **0.09** | 0.69  | 2.05  | 0.22     | 2.83      | 0.23  |
+| tex(u,v)      | **0.09** | 0.67  | 1.48  | 0.14     | 2.44      | 0.27  |
+| dot_cos       | **0.12** | 0.69  | 2.05  | 0.22     | 2.83      | 0.23  |
 
 v3 optimizations: ECL `(declare (type single-float …) (optimize speed 3))` + explicit `(compile 'fn)`;
 Janet `janet_fiber_reset + janet_continue` (zero-alloc hot calls).
@@ -72,7 +72,7 @@ v4 optimization: Steel `extract_value` + `call_function_with_args_from_mut_slice
 See [[ray-ecl-poc]], [[ray-steel-poc]], [[ray-janet-poc]] for details.
 
 - `ray` crate at `/home/kevin/devel/ray` is a lib+bin so POCs can depend on it
-- ECL POC:   0.9× Lambert overhead (compile + type decls); Slynk port 4005
+- ECL POC:   2.6× Lambert overhead (compile + type decls + single-float; 9+3 heap allocs/call); Slynk port 4005
 - Steel POC: 4.1× Lambert overhead (bytecode VM floor); TCP eval port 4006
 - Janet POC: 0.9× Lambert overhead (fiber reset); TCP eval port 4007
 - Report: `bench-report-v4.html` in embedded-lang-benchmarks repo
