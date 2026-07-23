@@ -4,6 +4,7 @@
   programs.bash.shellAliases = {
     nswitch = "sudo -H darwin-rebuild switch --flake ~/nixos#${nixSystem}";
     nbuild  = "darwin-rebuild build --flake ~/nixos#${nixSystem}";
+    msync   = "cd ~/nixos && git add memory-devel/ && git commit -m 'memory: sync from macOS' && git push && cd -";
   };
 
   programs.zsh = {
@@ -20,6 +21,7 @@
 
       nswitch = "sudo -H darwin-rebuild switch --flake ~/nixos#${nixSystem}";
       nbuild  = "darwin-rebuild build --flake ~/nixos#${nixSystem}";
+      msync   = "cd ~/nixos && git add memory-devel/ && git commit -m 'memory: sync from macOS' && git push && cd -";
     };
     sessionVariables = {
       EDITOR = "nvim";
