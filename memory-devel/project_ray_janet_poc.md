@@ -1,6 +1,6 @@
 ---
 name: ray-janet-poc
-description: "Janet 1.41 scripted ray tracer POC: scene description + TCP eval server (port 4007) + emacs/janet-mode.el + live CAPF completion. Stage 1+2+3+4 complete. 0.9× Lambert overhead with fiber reset."
+description: "Janet 1.41 scripted ray tracer POC: scene description + TCP eval server (port 4007) + emacs/janet-mode.el + live CAPF completion. Stage 1-5 complete. 0.9× Lambert, 1.7× Blinn-Phong overhead."
 metadata:
   node_type: memory
   type: project
@@ -25,6 +25,7 @@ See [[embedded-lang-benchmarks]] for benchmark context; compare with [[ray-ecl-p
 - [x] Stage 2: TCP eval server on port 4007 + `emacs/janet-mode.el` for Emacs live editing
 - [x] Stage 3: Janet Lambert shader — pixel-perfect vs Rust, 1.9× overhead (539ms vs 290ms at 1280×720 single-threaded)
 - [x] Stage 4: fiber reset (janet_fiber_reset + janet_continue) → **0.9× overhead**, pixel-perfect
+- [x] Stage 5: Blinn-Phong shader — `blinn-phong-shade` (elegant v+/v* tuple-destructure) + `blinn-phong-shade*` flat adapter for Rust hot path → **1.7× overhead**, pixel-perfect vs `BlinnPhong::shade`
 
 ## Build (requires Nix dev shell)
 
@@ -110,6 +111,23 @@ dedicated sync TCP connection per query, sends:
 and parses the `=> "foo|bar|baz"` response. Covers all Janet core symbols plus every
 user-defined name in the live environment. Works with corfu/company automatically.
 `janet--sync-eval` is the reusable helper (separate from the comint process) — timeout 1 s.
+
+## Stage 5: Blinn-Phong shader architecture
+
+`blinn-phong-shade` is the user-facing form — takes 5 color tuples, uses `v+`/`v*` helpers:
+```janet
+(defn blinn-phong-shade [ambient albedo diffuse specular spec-direct]
+  (v+ (v* albedo (v+ ambient diffuse))
+      (v* specular spec-direct)))
+```
+`blinn-phong-shade*` is the flat 15-arg adapter Rust calls via fiber-reset.
+Rust computes `direct_light_blinn_phong → (diffuse, spec_direct)` using the half-vector
+`H = normalize(L + V)`, then passes all 15 floats. The Rust reference uses `BlinnPhong::shade`
+directly from `shader.rs`.
+
+**Key finding:** the 5 Janet tuple allocations inside `blinn-phong-shade*` (building `[ar ag ab]`
+etc.) introduce GC pressure that fiber-reset cannot eliminate — hence 1.7× vs Lambert's 1.0×.
+The elegant v+/v* interface is right for live editing; flat args are right for hot shaders.
 
 ## Janet scene advantages vs Steel
 
