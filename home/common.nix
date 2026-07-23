@@ -96,7 +96,7 @@ in
   '';
 
   home.activation.claudeRayMemoryLink = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    target="${config.home.homeDirectory}/nixos/memory-ray"
+    target="${config.home.homeDirectory}/nixos/memory-devel"
     link="${config.home.homeDirectory}/.claude/projects/${rayProjectSlug}/memory"
     $DRY_RUN_CMD mkdir -p "$(dirname "$link")"
     if [ "$(readlink "$link" 2>/dev/null)" != "$target" ]; then
