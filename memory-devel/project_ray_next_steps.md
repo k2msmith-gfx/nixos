@@ -1,25 +1,23 @@
 ---
 name: ray-next-steps
-description: "Next focus: Emacs integration for Janet and/or ECL ray POC — live shader editing from Emacs."
+description: "ray POC next steps: Janet Emacs integration complete (comint + completion); ECL Slynk wired; next candidates: ECL completion, multi-POC comparison, or shader hot-reload."
 metadata: 
   node_type: memory
   type: project
   originSessionId: abd31d05-4f5f-4d33-a4de-fcacef7d0773
 ---
 
-Next session focus: pick 1–2 candidates (Janet and ECL are the front-runners) and explore Emacs integration for live shader/scene editing.
+## Completed
 
-**Why:** Janet and ECL both already have Emacs-friendly server setups (Janet TCP eval on port 4007, ECL Slynk/SLY on port 4005). The goal is smooth live editing of shaders from Emacs — edit a function, re-render, see the result.
+- Janet (port 4007): `emacs/janet-mode.el` — comint REPL, send-sexp/defun/region/buffer keybindings, live CAPF completion via `janet--sync-eval` + `(curenv)` query. Works with corfu/company. Docs updated (§3 completion, PDF regenerated).
+- ECL (port 4005): Slynk server, SLY connects via `M-x sly-connect localhost 4005`. `(render)` / `(set-albedo i r g b)` / `(quit)` work from the REPL.
 
-**How to apply:** Prioritise this over new POC stages. ECL has SLY already wired up (M-x sly-connect). Janet has a raw TCP REPL — may want a proper Emacs minor mode or inf-janet style integration.
+## Open / next
 
-## Current state
+- ECL: no completion yet — could do same CAPF pattern using Slynk's `swank:simple-completions`, or a separate TCP eval connection.
+- Both POCs: consider a shared Emacs package (`ray-poc.el`) that auto-detects the language by port.
+- Stretch: hot-reload a Janet shader function without re-rendering the whole frame.
 
-- ECL (port 4005): Slynk server running, SLY connects via `M-x sly-connect localhost 4005`. `(render)` / `(set-albedo i r g b)` / `(quit)` work from the REPL.
-- Janet (port 4007): TCP eval server, stdin REPL fallback. No Emacs package wired up yet.
+**Why:** Janet and ECL are the benchmark front-runners (ECL 0.09 µs, Janet 0.27 µs tex). Better Emacs tooling makes iterative shader work faster.
 
-## Open questions for next session
-
-1. Is inf-janet or a custom comint mode the right approach for Janet?
-2. Should both POCs get the same Emacs UX, or lean into ECL/SLY being the primary workflow?
-3. Any interest in displaying the render output image inside Emacs (e.g. via `M-x image-mode` or iimage)?
+**How to apply:** Janet integration is the reference implementation; use it as the template for ECL or any future POC.

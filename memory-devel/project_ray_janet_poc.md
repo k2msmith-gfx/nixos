@@ -1,6 +1,6 @@
 ---
 name: ray-janet-poc
-description: "Janet 1.41 scripted ray tracer POC: scene description + TCP eval server (port 4007) + emacs/janet-mode.el. Stage 1+2+3+4 complete. 0.9× Lambert overhead with fiber reset."
+description: "Janet 1.41 scripted ray tracer POC: scene description + TCP eval server (port 4007) + emacs/janet-mode.el + live CAPF completion. Stage 1+2+3+4 complete. 0.9× Lambert overhead with fiber reset."
 metadata:
   node_type: memory
   type: project
@@ -96,7 +96,20 @@ M-x janet-mode         ; enable in scene.janet buffer
 ; C-c C-b    send buffer (reload scene.janet)
 ; C-c r      (render!)
 ; C-c q      (quit!)
+; M-TAB      complete symbol at point (live, via eval server)
 ```
+
+## Symbol completion
+
+`janet-completion-at-point` is a CAPF registered buffer-locally by `janet-mode`. It opens a
+dedicated sync TCP connection per query, sends:
+```janet
+(string/join (sort (filter (fn [k] (string/has-prefix? PREFIX (string k)))
+                           (map string (keys (curenv))))) "|")
+```
+and parses the `=> "foo|bar|baz"` response. Covers all Janet core symbols plus every
+user-defined name in the live environment. Works with corfu/company automatically.
+`janet--sync-eval` is the reusable helper (separate from the comint process) — timeout 1 s.
 
 ## Janet scene advantages vs Steel
 
