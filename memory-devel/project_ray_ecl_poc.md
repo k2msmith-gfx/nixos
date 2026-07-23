@@ -128,6 +128,15 @@ tex(u,v) microbenchmark (2 args, scalar return, single-float, compile+type-decls
 - lambert: 0.67 µs/call  (9 args + list return = 12 allocations)
 - ratio:   ~3.7×  (lambert overhead vs 2-arg floor)
 
+## Planned: (scene-clear) function
+
+Next small feature: add `(scene-clear)` to wipe the current scene from the REPL.
+Pattern: pure Lisp + flag, no deep FFI needed.
+- `scene.lisp`: `(defvar *scene-clear-requested* nil)` + `(defun scene-clear () ...)`
+- `main.rs`: poll `*scene-clear-requested*` in the main loop alongside `*render-requested*`
+
+Also noted: CLI spec written (`embedded-lang-benchmarks/ray-poc-cli-spec.md`) — implement when ready.
+
 ## Known concerns
 
 - SIGFPE handler is a global side effect; easy to forget in a larger embedding.
