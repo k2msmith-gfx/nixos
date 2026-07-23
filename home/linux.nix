@@ -7,6 +7,7 @@
     ntest   = "sudo nixos-rebuild test --flake ~/nixos#kevinix";
     nbuild  = "sudo nixos-rebuild build --flake ~/nixos#kevinix";
     ncheck  = "sudo nixos-rebuild dry-build --flake ~/nixos#kevinix";
+    msync   = "cd ~/nixos && git add memory-devel/ && git commit -m 'memory: sync from Linux' && git push && cd -";
   };
 
   home.packages = with pkgs; [
