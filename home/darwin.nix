@@ -22,6 +22,7 @@
       nswitch = "sudo -H darwin-rebuild switch --flake ~/nixos#${nixSystem}";
       nbuild  = "darwin-rebuild build --flake ~/nixos#${nixSystem}";
       msync   = "cd ~/nixos && git add memory-devel/ && git commit -m 'memory: sync from macOS' && git push && cd -";
+      kj      = "lsof -ti :4007 | xargs kill -9";
     };
     sessionVariables = {
       EDITOR = "nvim";
