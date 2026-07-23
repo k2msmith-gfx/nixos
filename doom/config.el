@@ -42,6 +42,11 @@
                        sly-contribs))
   (sly-setup sly-contribs))
 
+(let ((janet-mode (cl-find-if #'file-exists-p
+                               (list "~/Documents/devel/rust/ray-janet-poc/emacs/janet-mode.el"
+                                     "~/devel/rust/ray-janet-poc/emacs/janet-mode.el"))))
+  (when janet-mode (load! janet-mode)))
+
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
