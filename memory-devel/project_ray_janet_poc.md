@@ -1,6 +1,6 @@
 ---
 name: ray-janet-poc
-description: "Janet 1.41 scripted ray tracer POC: scene description + TCP eval server (port 4007) + emacs/janet-mode.el + live CAPF completion. Stage 1-5 complete. 0.9× Lambert, 1.7× Blinn-Phong overhead."
+description: "Janet 1.41 scripted ray tracer POC. Migrated 2026-07-25 to PUSH architecture (full ECL parity): Rust registers %-cfunctions, Janet calls them. Scripted shaders removed. TCP eval server (port 4007) + emacs/janet-mode.el + CAPF retained. Parity: 0 diffs."
 metadata:
   node_type: memory
   type: project
@@ -8,10 +8,26 @@ metadata:
 ---
 
 POC embedding Janet 1.41 into the `ray` crate as a scripting layer.
-See [[embedded-lang-benchmarks]] for benchmark context; compare with [[ray-ecl-poc]] and [[ray-steel-poc]].
+See [[embedded-lang-benchmarks]] for benchmark context; compare with [[ray-ecl-poc]], [[ray-ecl-integration]] and [[ray-steel-poc]].
 
 **Why:** Janet placed 2nd in hot-call benchmarks (0.27 µs tex, 0.23 µs dot-cos via fiber reset), between ECL and Steel. Pixel-perfect vs Rust (f32↔f64 round-trips cancel).
-**How to apply:** All four stages done. Nix dev shell required (clang for bindgen, JANET_HOME for dylib).
+**How to apply:** Nix dev shell required (clang for bindgen, JANET_HOME for dylib). On macOS the checkout is `/Users/kevinsmith/Documents/devel/rust/ray-janet-poc`; build/run inside `nix develop`.
+
+## 2026-07-25 — PUSH architecture migration (full ECL parity)
+
+Migrated from the pull model (Rust walks a `*scene*` table via `get-in`) to the **push** model mirroring [[ray-ecl-integration]]: Rust registers `%`-prefixed callbacks and a Janet scene *calls* them to build the scene. Rust owns the schema; Janet owns ergonomics.
+
+- **FFI (build.rs):** added `janet_def`, `janet_wrap_cfunction`, `JanetCFunction` to the bindgen allowlist. Janet C-funcs are all `Janet fn(i32 argc, *mut Janet argv)` — no fixed-arity/transmute machinery ECL needs; each callback reads positional argv. Simpler than ECL's `def!` macro.
+- **`src/scripting.rs` (new):** owns all Janet FFI (isolated in inner `mod ffi` with `#[allow(dead_code)]`). `thread_local` `ENV` + `BUILDER`; `SceneBuilder`/`MatBuilder` identical to the ECL version; 14 `%`-callbacks (`%set-film/-camera/-ambient`, `%add-point-light/-spot-light`, `%mat-begin/-specular/-reflectivity/-transparency/-abbe/-shader`, `%add-sphere/-plane/-rect`); `register_api`, `build_scene` (resets builder, evals `(scene)`, finalizes), `boot/shutdown/eval/eval_truthy/eval_to_string/load_file`. All Janet must run on the main thread (thread-local env); the TCP thread only forwards form strings over a channel.
+- **Three-file script layout** (mirrors ECL's prelude/scene/live trio):
+  - `scripts/prelude.janet` — ergonomic wrappers (`material` via `[& opts]`+`(table ;opts)`, `add-sphere`, `shader-code`). `;xs` splice spreads a vec as positional args.
+  - `scripts/scene.janet` — `*film*/*camera*/*ambient*/*lights*/*shapes*` data (mutable `@{}`/`@[]`) + `emit-*` + `(scene)`. Order matches ECL: 0 blue-lambert, 1 glass-phong, 2 orange, **3 green-blinn-phong, 4 mirror**, 5 normal, 6 ground, 7 backdrop.
+  - `scripts/live.janet` — in-place setters mutating `*shapes*`, index aliases, `*render-requested*`/`*quit-requested*` vars + `render`/`quit`.
+- **`src/main.rs`:** rewritten as pure push builder; added local `reference_scene()` (mirrors scene.janet; `ray::scenes` doesn't exist on reverted `main`) for the parity check → **0 pixel diffs**. Kept TCP server 4007 + stdin REPL + comint.
+- **Removed:** all scripted shaders (Lambert + Blinn-Phong — "just a test"), Stage 3/5 pixel-diff blocks, µs/call microbenchmarks, entire pull `get-in` accessor layer.
+- **Follow-ups (not done):** org-doc/PDF §8 "scripted shaders" now stale; `emacs/janet-mode.el` completion not re-audited (aliases shifted, e.g. `*sphere-green*` 4→3).
+
+⚠️ **Everything below is historical (pre-2026-07-25 migration)** — the pull-model scene pattern (`get-in`/`put-in` accessors), the Lambert/Blinn-Phong scripted shaders, and their benchmarks describe code that no longer exists. Kept for the benchmark record and [[embedded-lang-benchmarks]] context.
 
 ## Repos
 
