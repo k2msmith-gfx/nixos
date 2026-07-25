@@ -133,11 +133,19 @@ let val = vm.call_function_with_args_from_mut_slice(shade_fn.clone(), &mut args)
 Args as `SteelVal::NumV(f64)`, result from `SteelVal::ListV` iterator.
 
 Performance at 1280×720 single-threaded:
+
+Linux (x86_64):
 - Rust Lambert: 290ms (3.17 Mpix/s)
 - Steel Lambert: 1.177s (0.78 Mpix/s) — **4.1× overhead** (vs 4.3× with by-name lookup)
-- Pixel diffs: 336,372 (max ~1e-7 due to f64 arithmetic vs Rust f32, imperceptible)
-- tex(u,v): 0.65 µs/call (ray-steel-poc microbenchmark)
-- lambert(9-arg): 1.40 µs/call
+- Pixel diffs: 336,372 (max ~1e-7, imperceptible)
+- tex(u,v): 0.65 µs/call; lambert(9-arg): 1.40 µs/call
+
+macOS (ARM64, Apple Silicon, 2026-07-24):
+- Rust Lambert: 1.675s (0.55 Mpix/s)
+- Steel Lambert: 3.550s (0.26 Mpix/s) — **2.1× overhead**
+- Pixel diffs: 336,372 (max 1.19e-7, same as Linux)
+- tex(u,v): 1.47 µs/call; lambert(9-arg): 3.09 µs/call
+- Note: per-call µs are higher than Linux despite lower render ratio — Rust debug baseline is also slower on this machine
 
 Compare: Janet 1.9× (janet_pcall + fiber reset), ECL 0.9× (compiled + type declarations).
 

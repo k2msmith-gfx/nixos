@@ -64,12 +64,26 @@ Janet function `(lambert-shade ar ag ab lr lg lb dr dg db)` returns `[r g b]` tu
 Result unpacked with `janet_getindex(out, i)` (added to build.rs bindings).
 
 Performance at 1280×720 single-threaded:
-- Rust Lambert: 290ms (3.18 Mpix/s)
-- Janet Lambert: 539ms (1.71 Mpix/s) — 1.9× overhead
-- Pixel diffs: **0** (pixel-perfect, f32→f64→f32 round-trips cancel out)
 
-The 1.9× overhead = janet_pcall fiber allocation per pixel + boxing 9 f64 args.
-After Stage 4 fiber reset: 0.9× overhead — matches Rust.
+Linux (x86_64):
+- Rust Lambert: 290ms (3.18 Mpix/s)
+- Janet Lambert: 539ms (1.71 Mpix/s) — 1.9× overhead (fiber alloc + boxing)
+- After Stage 4 fiber reset: **0.9×** overhead — matches Rust
+- Pixel diffs: **0** (pixel-perfect)
+
+macOS (ARM64, Apple Silicon, 2026-07-24):
+- Rust Lambert: 1.590s (0.580 Mpix/s)
+- Janet Lambert: 1.659s (0.555 Mpix/s) — **1.0×** overhead (fiber reset)
+- Pixel diffs: **0** (pixel-perfect)
+
+## Microbenchmarks: hot call overhead
+
+macOS (ARM64, Apple Silicon, 2026-07-24):
+- lambert(9-arg):      0.08 µs/call  (100k iters)
+- blinn-phong*(15-arg): 2.39 µs/call (100k iters — 5 tuple allocs dominate)
+
+Linux (x86_64) — from embedded-lang-benchmarks context:
+- fiber-reset hot call: ~0.23 µs (dot-cos), ~0.27 µs (tex 2-arg)
 
 ## Janet FFI constraint: janet_pcall / fiber_reset
 
@@ -128,6 +142,16 @@ directly from `shader.rs`.
 **Key finding:** the 5 Janet tuple allocations inside `blinn-phong-shade*` (building `[ar ag ab]`
 etc.) introduce GC pressure that fiber-reset cannot eliminate — hence 1.7× vs Lambert's 1.0×.
 The elegant v+/v* interface is right for live editing; flat args are right for hot shaders.
+
+Performance at 1280×720 single-threaded:
+
+Linux (x86_64):
+- Rust Blinn-Phong: ~290ms baseline; Janet Blinn-Phong: **1.7×** overhead
+
+macOS (ARM64, Apple Silicon, 2026-07-24):
+- Rust Blinn-Phong: 1.702s (0.542 Mpix/s)
+- Janet Blinn-Phong: 3.258s (0.283 Mpix/s) — **1.9×** overhead
+- Pixel diffs: **0** (pixel-perfect)
 
 ## Janet scene advantages vs Steel
 

@@ -124,9 +124,19 @@ The remaining 2.6× overhead is dominated by 9+3=12 heap allocations per lambert
 
 ## Stage 4: tex(u,v) microbenchmark
 tex(u,v) microbenchmark (2 args, scalar return, single-float, compile+type-decls):
+
+Linux (x86_64):
 - tex:     0.18 µs/call  (3 allocations: 2 args + 1 implicit stack)
 - lambert: 0.67 µs/call  (9 args + list return = 12 allocations)
 - ratio:   ~3.7×  (lambert overhead vs 2-arg floor)
+
+macOS (ARM64, Apple Silicon, 2026-07-24):
+- tex:     0.05 µs/call
+- lambert: 0.16 µs/call
+- ratio:   3.20×
+- Lambert slowdown vs Rust: **1.1×** (vs 2.6× on Linux) — ECL near-parity on ARM64
+- Render 0: 442ms (2.08 Mpix/s); Rust Lambert: 1.604s; ECL Lambert: 1.701s
+- Slynk compiled and started cleanly (`.fas` cache hit for all contribs)
 
 ## Planned: (scene-clear) function
 
