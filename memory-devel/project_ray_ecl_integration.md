@@ -1,13 +1,15 @@
 ---
 name: ray-ecl-integration
-description: "ECL scripting integrated into the real ray project (./ray) via push architecture — Lisp calls Rust API. Feature-gated, parity-exact vs pure-Rust reference. Slynk on 4005 preserved."
+description: "ECL scripting for ray via push architecture (Lisp calls Rust API). REVERTED off ray main 2026-07-25 → now lives ONLY on the ecl-scripting branch (origin/ecl-scripting @2045750); ray main is back at 9888b98. Branch verified still builds. Architecture notes below still accurate."
 metadata: 
   node_type: memory
   type: project
   originSessionId: 909e0d2a-a13e-4498-b883-790f8e87ca7c
 ---
 
-ECL (Common Lisp) scripting now lives **in the real `ray` project** (`/Users/kevinsmith/Documents/devel/rust/ray`), not just the standalone POC. See [[ray-ecl-poc]] for the prior pull-model POC this evolved from.
+> ⚠️ **STATUS 2026-07-25 — reverted off `ray` main.** This ECL integration was last night's work on `ray` main (commits `ead65c2`, `47655e1`, `2045750` on `9888b98`). At the user's request it was **reverted**: `ray` main reset to `9888b98` (pre-ECL) and the three commits preserved on the **`ecl-scripting`** branch. That branch is now **remote-only** — pushed to `origin/ecl-scripting` (@`2045750`), local branch deleted; `ray`'s GitHub main force-pushed to `9888b98`. Verified the branch **still builds** (fresh `cargo clean -p ray` + `nix develop .#ecl` → `cargo build --features ecl --bin ray-ecl`, rc=0, ECL 26.5.5). Recover with `git checkout -b ecl-scripting origin/ecl-scripting`. Everything below still accurately describes the code **on that branch** — it's just not on `ray` main anymore. The parallel Janet POC took this same push architecture ([[ray-janet-poc]]).
+
+ECL (Common Lisp) scripting — code lives on the `ecl-scripting` branch of the `ray` project (`/Users/kevinsmith/Documents/devel/rust/ray`), no longer on main. See [[ray-ecl-poc]] for the prior pull-model POC this evolved from.
 
 **Why:** Chose ECL for `ray` scripting. Moved from the POC's *pull* model (Rust walks a Lisp `*scene*` plist) to a *push* model (Lisp calls Rust API functions like `add-sphere`). User's 4 steps: (1) integrate into real project, (2) push method, (3) demo scene loaded from Lisp not hard-coded in main, (4) skip Lisp shaders — native Rust shaders only for now.
 **How to apply:** Build/run via the ECL feature + dedicated Nix shell (below). Pure-Rust builds stay Nix-free.
