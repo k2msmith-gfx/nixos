@@ -1,17 +1,33 @@
 ---
 name: ray-steel-poc
-description: "Steel (Scheme) scripted ray tracer POC: scene description + TCP eval server + Emacs steel-mode. Stage 1+2+3+4 complete."
+description: "Steel (Scheme) scripted ray tracer POC. Migrated 2026-07-25 to PUSH architecture (full ECL/Janet parity): Rust register_fn %-callbacks, Steel scene calls them. Scripted shaders removed. TCP eval server (port 4006) + emacs/steel-mode.el + CAPF/Corfu completion. Parity: 0 diffs."
 metadata: 
   node_type: memory
   type: project
   originSessionId: 431dfea2-1a06-416f-bfd1-10c0d0145383
 ---
 
-POC embedding Steel (pure-Rust Scheme, `steel-core = "0.8"`) into the `ray` crate as a scripting layer.
-See [[embedded-lang-benchmarks]] for the benchmark context; compare with [[ray-ecl-poc]].
+POC embedding Steel (pure-Rust Scheme, `steel-core = "0.8.2"`) into the `ray` crate as a scripting layer.
+See [[embedded-lang-benchmarks]] for benchmark context; compare with [[ray-ecl-poc]], [[ray-janet-poc]] (mirrors its layout).
 
 **Why:** Evaluate Steel as a simpler alternative to ECL — no FFI, no system deps, just `cargo build`.
-**How to apply:** All four stages done. Stage 4 pre-resolves function handle for 4.1× Lambert overhead.
+**How to apply:** Local checkout `/Users/kevinsmith/Documents/devel/rust/ray-steel-poc`; `cargo build` (pure Rust, no Nix). See [[reference_repo_paths]].
+
+## 2026-07-25 — PUSH architecture migration (full ECL/Janet parity)
+
+Migrated from the pull model (Rust walked `*scene*` via `hash-ref`) to the **push** model mirroring [[ray-janet-poc]]: Rust registers `%`-prefixed callbacks and a Steel scene *calls* them to build the scene. Rust owns the schema; Steel owns ergonomics.
+
+- **`src/scripting.rs` (new):** `thread_local` `RefCell<SceneBuilder>` (Steel VM is `!Send`, main-thread only). 14 `%`-callbacks registered via `Engine::register_fn` — closures capture nothing, reach the builder through `with_builder`, so they satisfy register_fn's `Send+Sync+'static` bound. `SceneBuilder`/`MatBuilder` identical to the Janet/ECL version. `register_api(&mut vm)` + `build_scene(&mut vm)` (resets builder, `vm.run("(scene)")`, finish).
+- **Steel register_fn facts (verified in steel checkout v0.8.2):** callbacks take positional `f64` args (max arity **16**; widest callback = 11-arg spot light). `f64::from_steelval` accepts **only `NumV`, not `IntV`** (`try_from_impl!(NumV => f64, f32)`) → prelude coerces every arg with `exact->inexact` (`->f`), incl. shader int codes. `()` impls IntoSteelVal. **`void` is a VALUE not a procedure** — use bare `void`, never `(void)` (that applies void → "Application not a procedure" error).
+- **Three-file script layout** (mirrors Janet's prelude/scene/live trio):
+  - `scripts/prelude.scm` — `->f`, `shader-code` (string→int code), `set-film/-camera/-ambient`, `add-point-light/-spot-light`, `material` (flat `'key value` plist via `plist-get`, emits `%mat-*`), `add-sphere/-plane/-rect`.
+  - `scripts/scene.scm` — `make-mat` (builds a hash) + `*film*/*camera*/*ambient*/*lights*/*shapes*` data (lists of immutable hashes) + `emit-*` + `(scene)`. Order now matches Janet/ECL: 0 blue-lambert, 1 glass-phong, 2 orange, **3 green-blinn-phong, 4 mirror**, 5 normal, 6 ground, 7 backdrop (swapped from old Steel order which had mirror at 3, blinn at 4).
+  - `scripts/live.scm` — setters rebuild `*shapes*` via `set!` + `list-set` (Steel hashes/lists immutable, so functional rebuild — the one real diff vs Janet's in-place `put`). Index aliases, `*render-requested*`/`*quit-requested*`, `render!`/`quit!`.
+- **`src/main.rs`:** rewritten as pure push builder; local `reference_scene()` mirrors scene.scm → **0 pixel diffs**. Kept TCP server 4006 + stdin REPL. Now emits a `steel> ` prompt on connect + after each response (was promptless) so the Emacs completion helper can detect readiness.
+- **Removed:** scripted Lambert shader (`lambert-shade`, `render_steel_lambert`, `tex`), Stage 3 pixel-diff block, all µs/call microbenchmarks, the entire pull `hash-ref` accessor layer (`shape_expr`/`mat_expr`/`light_expr`/`build_material`/`build_shape`/`build_light`/`get_f32` etc.).
+- **Completion (Stage 2):** Steel has no value-level env introspection, but `Engine::globals()` → `Vec<InternedString>` (`.resolve()` → name) does it on the Rust side. Added a `(%symbols)` **sentinel** intercepted in `eval_form` before `vm.run`: returns all globals pipe-joined in a quoted string (`=> "a|b|c"`), filtering `#`-containing and `%-builtin-module-*` noise (790 clean symbols). `emacs/steel-mode.el` ported from janet-mode.el: `steel--sync-eval` (waits for `steel>`), client-side cache (TTL 3s + invalidate on send), `steel-completion-at-point` CAPF, Corfu auto-popup. Verified in batch emacs: CAPF `set-a` → `(set-albedo set-ambient)`. Symbol chars `*!?/<>=+%a-zA-Z0-9_-`.
+
+⚠️ **Everything below is historical (pre-2026-07-25 migration)** — the pull-model scene pattern (`hash-ref`/`hash-insert` accessors from Rust), the Lambert scripted shader, and their 4.1× benchmarks describe code that no longer exists. Kept for the benchmark record and [[embedded-lang-benchmarks]] context.
 
 ## Repos
 
