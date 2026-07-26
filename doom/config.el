@@ -42,10 +42,10 @@
                        sly-contribs))
   (sly-setup sly-contribs))
 
-(let ((janet-mode (cl-find-if #'file-exists-p
-                               (list "~/Documents/devel/rust/ray-janet-poc/emacs/janet-mode.el"
-                                     "~/devel/rust/ray-janet-poc/emacs/janet-mode.el"))))
-  (when janet-mode (load! janet-mode)))
+(let ((janet-live-file (cl-find-if #'file-exists-p
+                                   (list "~/Documents/devel/rust/ray-janet-poc/emacs/janet-live-mode.el"
+                                         "~/devel/rust/ray-janet-poc/emacs/janet-live-mode.el"))))
+  (when janet-live-file (load (expand-file-name janet-live-file) nil t)))
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
