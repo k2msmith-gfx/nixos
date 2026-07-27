@@ -64,6 +64,10 @@ binds {
         spawn-sh "noctalia-shell ipc call launcher toggle";
     }
     Mod+B { spawn "google-chrome"; }
+    Mod+E { spawn "thunar"; }
+
+    // Overview
+    Mod+A { toggle-overview; }
 
     // Window management
     Mod+Q { close-window; }
