@@ -38,5 +38,19 @@
     };
   };
 
+  # Run a user ssh-agent (systemd user service, lives for the login session).
+  services.ssh-agent.enable = true;
+
+  # SSH client config (Linux-only; the Macs manage their own ~/.ssh/config).
+  # AddKeysToAgent loads the key into the agent on first use, prompting for the
+  # passphrase once per boot so later git pushes over SSH don't re-prompt.
+  programs.ssh = {
+    enable = true;
+    matchBlocks."*" = {
+      addKeysToAgent = "yes";
+      identityFile   = "~/.ssh/id_ed25519";
+    };
+  };
+
   xdg.configFile."niri/config.kdl".source = ../niri/config.kdl;
 }
