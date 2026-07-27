@@ -47,7 +47,13 @@
       name = "Adwaita";
       size = 24;
     };
+    # Prefer the dark Adwaita variant so GTK apps (Thunar) render dark.
+    gtk3.extraConfig.gtk-application-prefer-dark-theme = 1;
+    gtk4.extraConfig.gtk-application-prefer-dark-theme = 1;
   };
+
+  # libadwaita / GTK4 apps read this instead of the flag above.
+  dconf.settings."org/gnome/desktop/interface".color-scheme = "prefer-dark";
 
   # Run a user ssh-agent (systemd user service, lives for the login session).
   services.ssh-agent.enable = true;
