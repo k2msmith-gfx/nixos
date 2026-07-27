@@ -9,6 +9,13 @@
     ncheck  = "sudo nixos-rebuild dry-build --flake ~/nixos#kevinix";
     msync   = "cd ~/nixos && git add memory-devel/ && git commit -m 'memory: sync from Linux' && git push && cd -";
     kj      = "lsof -ti :4007 | xargs kill -9";
+
+    # ray-janet: build+run inside the `janet` dev shell so JANET_HOME /
+    # LIBCLANG_PATH are set for us. Ends in `--`, so trailing args flow to the
+    # binary, e.g. `rayj --scene scripts/scene.janet --tcp`. The `cd` lands you
+    # in the repo (needed for `.#janet`) and stays there after.
+    rayj    = "cd ~/devel/ray && nix develop .#janet -c cargo run --features janet --bin ray-janet --";
+    rayjr   = "cd ~/devel/ray && nix develop .#janet -c cargo run --release --features janet --bin ray-janet --";
   };
 
   home.packages = with pkgs; [
