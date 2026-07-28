@@ -43,8 +43,8 @@
   (sly-setup sly-contribs))
 
 (let ((janet-live-file (cl-find-if #'file-exists-p
-                                   (list "~/Documents/devel/rust/ray-janet-poc/emacs/janet-live-mode.el"
-                                         "~/devel/rust/ray-janet-poc/emacs/janet-live-mode.el"))))
+                                   (list "~/Documents/devel/rust/ray/emacs/janet-live-mode.el"
+                                         "~/devel/ray/emacs/janet-live-mode.el"))))
   (when janet-live-file (load (expand-file-name janet-live-file) nil t)))
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
