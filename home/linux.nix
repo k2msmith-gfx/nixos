@@ -66,9 +66,17 @@
   # passphrase once per boot so later git pushes over SSH don't re-prompt.
   programs.ssh = {
     enable = true;
-    matchBlocks."*" = {
-      addKeysToAgent = "yes";
-      identityFile   = "~/.ssh/id_ed25519";
+    # Home Manager replaced `matchBlocks` (camelCase opts) with `settings` (a
+    # DAG keyed by host pattern, using literal ssh_config directive names).
+    # `enableDefaultConfig = false` opts out of HM's injected `Host *` legacy
+    # defaults — they only mirror OpenSSH's own built-in defaults (ForwardAgent
+    # no, Compression no, ControlMaster no, UserKnownHostsFile ~/.ssh/known_hosts
+    # …), so dropping them changes no effective behaviour and silences the
+    # deprecation warning. We keep just the two directives we actually set.
+    enableDefaultConfig = false;
+    settings."*" = {
+      AddKeysToAgent = "yes";
+      IdentityFile   = "~/.ssh/id_ed25519";
     };
   };
 
