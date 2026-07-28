@@ -30,6 +30,10 @@
       # in the repo (needed for `.#janet`) and stays there after.
       rayj    = "cd ~/Documents/devel/rust/ray && nix develop .#janet -c cargo run --features janet --bin ray-janet --";
       rayjr   = "cd ~/Documents/devel/rust/ray && nix develop .#janet -c cargo run --release --features janet --bin ray-janet --";
+
+      # Fullscreen Emacs live workbench: scene.janet | render image / *janet*.
+      # Builds the release binary if missing, then Emacs runs it and connects.
+      rays    = "~/Documents/devel/rust/ray/scripts/ray-studio";
     };
     sessionVariables = {
       EDITOR = "nvim";

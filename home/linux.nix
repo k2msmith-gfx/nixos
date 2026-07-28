@@ -16,6 +16,10 @@
     # in the repo (needed for `.#janet`) and stays there after.
     rayj    = "cd ~/devel/ray && nix develop .#janet -c cargo run --features janet --bin ray-janet --";
     rayjr   = "cd ~/devel/ray && nix develop .#janet -c cargo run --release --features janet --bin ray-janet --";
+
+    # Fullscreen Emacs live workbench: scene.janet | render image / *janet*.
+    # Builds the release binary if missing, then Emacs runs it and connects.
+    rays    = "~/devel/ray/scripts/ray-studio";
   };
 
   home.packages = with pkgs; [
