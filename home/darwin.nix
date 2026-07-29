@@ -17,7 +17,7 @@
       grep    = "grep --color=auto";
       rg      = "rg --smart-case";
       g       = "git";
-      dv      = "cd ~/Documents/devel/rust/ray";
+      dv      = "cd ~/devel/ray";
 
       nswitch = "sudo -H darwin-rebuild switch --flake ~/nixos#${nixSystem}";
       nbuild  = "darwin-rebuild build --flake ~/nixos#${nixSystem}";
@@ -28,15 +28,15 @@
       # LIBCLANG_PATH are set for us. Ends in `--`, so trailing args flow to the
       # binary, e.g. `rayj --scene scripts/scene.janet --tcp`. The `cd` lands you
       # in the repo (needed for `.#janet`) and stays there after.
-      rayj    = "cd ~/Documents/devel/rust/ray && nix develop .#janet -c cargo run --features janet --bin ray-janet --";
-      rayjr   = "cd ~/Documents/devel/rust/ray && nix develop .#janet -c cargo run --release --features janet --bin ray-janet --";
+      rayj    = "cd ~/devel/ray && nix develop .#janet -c cargo run --features janet --bin ray-janet --";
+      rayjr   = "cd ~/devel/ray && nix develop .#janet -c cargo run --release --features janet --bin ray-janet --";
       # Build (not run) the release ray-janet binary — e.g. to pre-build it so
       # `rays`/ray-studio starts instantly instead of building on first launch.
-      rayjb   = "cd ~/Documents/devel/rust/ray && nix develop .#janet -c cargo build --release --features janet --bin ray-janet";
+      rayjb   = "cd ~/devel/ray && nix develop .#janet -c cargo build --release --features janet --bin ray-janet";
 
       # Fullscreen Emacs live workbench: scene.janet | render image / *janet*.
       # Builds the release binary if missing, then Emacs runs it and connects.
-      rays    = "~/Documents/devel/rust/ray/scripts/ray-studio";
+      rays    = "~/devel/ray/scripts/ray-studio";
     };
     sessionVariables = {
       EDITOR = "nvim";

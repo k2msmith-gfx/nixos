@@ -2,7 +2,7 @@
 
 let
   projectSlug    = (builtins.replaceStrings [ "/" ] [ "-" ] config.home.homeDirectory) + "-nixos";
-  rayProjectSlug = builtins.replaceStrings [ "/" ] [ "-" ] (config.home.homeDirectory + "/Documents/devel/rust/ray");
+  rayProjectSlug = builtins.replaceStrings [ "/" ] [ "-" ] (config.home.homeDirectory + "/devel/ray");
   # devel memories: Linux works from ~/devel, macOS from ~/Documents/devel/rust
   develSlugLinux  = builtins.replaceStrings [ "/" ] [ "-" ] (config.home.homeDirectory + "/devel");
   develSlugDarwin = builtins.replaceStrings [ "/" ] [ "-" ] (config.home.homeDirectory + "/Documents/devel/rust");
