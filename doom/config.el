@@ -42,10 +42,24 @@
                        sly-contribs))
   (sly-setup sly-contribs))
 
-(let ((janet-live-file (cl-find-if #'file-exists-p
-                                   (list "~/Documents/devel/rust/ray/emacs/janet-live-mode.el"
-                                         "~/devel/ray/emacs/janet-live-mode.el"))))
-  (when janet-live-file (load (expand-file-name janet-live-file) nil t)))
+;; ray live-editing.  Find the ray repo's emacs/ dir (path differs per machine),
+;; put it on `load-path', load janet-live-mode, and autoload the ray-studio
+;; workbench launcher so `M-x ray-studio' and the right-click "Launch studio"
+;; work from a bare Emacs — no need to go through the `rays' shell wrapper.
+(let* ((janet-live-file (cl-find-if #'file-exists-p
+                                    (list "~/Documents/devel/rust/ray/emacs/janet-live-mode.el"
+                                          "~/devel/ray/emacs/janet-live-mode.el")))
+       (emacs-dir (and janet-live-file
+                       (file-name-directory (expand-file-name janet-live-file)))))
+  (when emacs-dir
+    (add-to-list 'load-path emacs-dir)
+    (load (expand-file-name janet-live-file) nil t)
+    (autoload 'ray-studio "ray-studio" "Launch the live ray-janet studio." t)))
+
+;; Right-click pops up the context menu (Cut/Copy/Paste, Select Region, …) in
+;; any buffer.  In Janet buffers janet-live-mode adds a "Janet:" section with
+;; the live-editing commands (greyed out until connected).
+(context-menu-mode 1)
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
