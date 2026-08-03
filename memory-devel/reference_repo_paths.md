@@ -7,6 +7,7 @@ metadata:
   originSessionId: 64c575b2-dc31-45ab-ba9e-12e9efd32849
 ---
 
+- `~/devel/ray-zig` — Zig 0.16 port of ray tracer (benchmark comparison); GitHub: k2msmith-gfx/ray-zig (private)
 - `~/nixos` — NixOS config (GitHub: k2msmith-gfx/nixos, HTTPS remote, pulls without SSH)
 - `~/devel/ray` — main ray renderer. **MOVED here 2026-07-28** from `~/Documents/devel/rust/ray` to escape iCloud-sync churn (iCloud kept dropping `" 2"` duplicate files under ~/Documents and occasionally scrambled git's index mid-operation). Now the **same path on macOS and Linux**. This also changed the Claude project slug → the memory symlink in `~/nixos/home/common.nix` (`rayProjectSlug`) was updated to `~/devel/ray`, and the macOS aliases in `darwin.nix` (dv/rayj/rayjr/rayjb/rays) were repointed; **requires `nswitch` to apply**. The other POC repos below were NOT moved (still under ~/Documents on macOS).
 - `~/Documents/devel/rust/ray-janet-poc` — Janet scripting POC
