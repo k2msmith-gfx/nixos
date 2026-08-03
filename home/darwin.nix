@@ -37,6 +37,13 @@
       # Fullscreen Emacs live workbench: scene.janet | render image / *janet*.
       # Builds the release binary if missing, then Emacs runs it and connects.
       rays    = "~/devel/ray/scripts/ray-studio";
+
+      # ray-zig: Zig 0.16 port. Janet found via Homebrew; DYLD path set at
+      # runtime so the dylib is found. Ends in `--` so trailing args flow to
+      # the binary, e.g. `rayz --scene scripts/scene.janet`.
+      rayz    = "cd ~/devel/ray-zig && DYLD_LIBRARY_PATH=$(brew --prefix janet)/lib zig build run --";
+      rayzr   = "cd ~/devel/ray-zig && DYLD_LIBRARY_PATH=$(brew --prefix janet)/lib zig build -Doptimize=ReleaseFast run --";
+      rayzb   = "cd ~/devel/ray-zig && zig build -Doptimize=ReleaseFast";
     };
     sessionVariables = {
       EDITOR = "nvim";
