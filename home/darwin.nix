@@ -37,6 +37,7 @@
       # Fullscreen Emacs live workbench: scene.janet | render image / *janet*.
       # Builds the release binary if missing, then Emacs runs it and connects.
       rays    = "~/devel/ray/scripts/ray-studio";
+      rayzs   = "~/devel/ray-zig/scripts/ray-zig-studio";
 
       # ray-zig: Zig 0.16 port. The Janet lib path is baked into the binary as
       # an rpath at build time (pkg-config --libs-only-L janet), so no

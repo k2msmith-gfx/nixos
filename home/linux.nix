@@ -23,6 +23,7 @@
     # Fullscreen Emacs live workbench: scene.janet | render image / *janet*.
     # Builds the release binary if missing, then Emacs runs it and connects.
     rays    = "~/devel/ray/scripts/ray-studio";
+    rayzs   = "~/devel/ray-zig/scripts/ray-zig-studio";
   };
 
   home.packages = with pkgs; [
