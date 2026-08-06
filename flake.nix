@@ -45,6 +45,7 @@
       specialArgs = { inherit inputs; };
       modules = [
         { nixpkgs.overlays = [ inputs.noctalia.overlays.default ]; }
+        { networking.hostName = "kevinixpc"; }
         ./hardware-configuration-kevinixpc.nix
         ./configuration.nix
         ./modules/desktop/niri.nix
