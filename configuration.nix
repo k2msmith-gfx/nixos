@@ -11,15 +11,6 @@
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
-  boot.kernelModules = [ "lenovo-acpi" ];
-  systemd.services.disable-mic-led = {
-    description = "Turn off Lenovo Mic Mute LED permanently";
-    wantedBy = [ "multi-user.target" ];
-    serviceConfig = {
-      Type = "oneshot";
-      ExecStart = "${pkgs.bash}/bin/bash -c 'echo 0 > /sys/class/leds/platform::micmute/brightness'";
-    };
-  };
 
   # networking.wireless.enable = true;  # Enables wireless support via wpa_supplicant.
 

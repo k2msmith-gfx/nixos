@@ -26,7 +26,18 @@
       specialArgs = { inherit inputs; };
       modules = [
         { nixpkgs.overlays = [ inputs.noctalia.overlays.default ]; }
-        { networking.hostName = "kevinix"; }
+        ({ pkgs, ... }: {
+          networking.hostName = "kevinix";
+          boot.kernelModules = [ "lenovo-acpi" ];
+          systemd.services.disable-mic-led = {
+            description = "Turn off Lenovo Mic Mute LED permanently";
+            wantedBy = [ "multi-user.target" ];
+            serviceConfig = {
+              Type = "oneshot";
+              ExecStart = "${pkgs.bash}/bin/bash -c 'echo 0 > /sys/class/leds/platform::micmute/brightness'";
+            };
+          };
+        })
         ./hardware-configuration.nix
         ./configuration.nix
         ./modules/desktop/niri.nix
