@@ -26,6 +26,26 @@
       specialArgs = { inherit inputs; };
       modules = [
         { nixpkgs.overlays = [ inputs.noctalia.overlays.default ]; }
+        ./hardware-configuration.nix
+        ./configuration.nix
+        ./modules/desktop/niri.nix
+        home-manager.nixosModules.home-manager
+        {
+          home-manager.useGlobalPkgs = true;
+          home-manager.useUserPackages = true;
+          home-manager.users.kevin = {
+            imports = [ ./home/common.nix ./home/linux.nix ];
+          };
+        }
+      ];
+    };
+
+    nixosConfigurations.kevinixpc = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      specialArgs = { inherit inputs; };
+      modules = [
+        { nixpkgs.overlays = [ inputs.noctalia.overlays.default ]; }
+        ./hardware-configuration-kevinixpc.nix
         ./configuration.nix
         ./modules/desktop/niri.nix
         home-manager.nixosModules.home-manager
