@@ -1,12 +1,12 @@
-{ pkgs, ... }:
+{ pkgs, nixSystem, ... }:
 
 {
   programs.bash.shellAliases = {
-    nswitch = "sudo nixos-rebuild switch --flake ~/nixos#kevinix";
-    nboot   = "sudo nixos-rebuild boot --flake ~/nixos#kevinix";
-    ntest   = "sudo nixos-rebuild test --flake ~/nixos#kevinix";
-    nbuild  = "sudo nixos-rebuild build --flake ~/nixos#kevinix";
-    ncheck  = "sudo nixos-rebuild dry-build --flake ~/nixos#kevinix";
+    nswitch = "sudo nixos-rebuild switch --flake ~/nixos#${nixSystem}";
+    nboot   = "sudo nixos-rebuild boot --flake ~/nixos#${nixSystem}";
+    ntest   = "sudo nixos-rebuild test --flake ~/nixos#${nixSystem}";
+    nbuild  = "sudo nixos-rebuild build --flake ~/nixos#${nixSystem}";
+    ncheck  = "sudo nixos-rebuild dry-build --flake ~/nixos#${nixSystem}";
     msync   = "cd ~/nixos && git add memory-devel/ && git commit -m 'memory: sync from Linux' && git push && cd -";
     kj      = "lsof -ti :4007 | xargs kill -9";
 

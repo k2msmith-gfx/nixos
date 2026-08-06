@@ -45,6 +45,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
+          home-manager.extraSpecialArgs = { nixSystem = "kevinix"; };
           home-manager.users.kevin = {
             imports = [ ./home/common.nix ./home/linux.nix ];
           };
@@ -65,6 +66,7 @@
         {
           home-manager.useGlobalPkgs = true;
           home-manager.useUserPackages = true;
+          home-manager.extraSpecialArgs = { nixSystem = "kevinixpc"; };
           home-manager.users.kevin = {
             imports = [ ./home/common.nix ./home/linux.nix ];
           };
