@@ -24,9 +24,9 @@
     # rpath at build time (pkg-config --libs-only-L janet), so no
     # LD_LIBRARY_PATH is needed. Ends in `--` so trailing args flow to
     # the binary, e.g. `rayz --scene scripts/scene.janet`.
-    rayz    = "cd ~/devel/ray-zig && zig build run --";
-    rayzr   = "cd ~/devel/ray-zig && zig build -Doptimize=ReleaseFast run --";
-    rayzb   = "cd ~/devel/ray-zig && zig build -Doptimize=ReleaseFast";
+    rayz    = "cd ~/devel/ray-zig && nix develop -c zig build run --";
+    rayzr   = "cd ~/devel/ray-zig && nix develop -c zig build -Doptimize=ReleaseFast run --";
+    rayzb   = "cd ~/devel/ray-zig && nix develop -c zig build -Doptimize=ReleaseFast";
 
     # Fullscreen Emacs live workbench: scene.janet | render image / *janet*.
     # Builds the release binary if missing, then Emacs runs it and connects.
