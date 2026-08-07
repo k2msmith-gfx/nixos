@@ -20,6 +20,14 @@
     # `rays`/ray-studio starts instantly instead of building on first launch.
     rayjb   = "cd ~/devel/ray && nix develop .#janet -c cargo build --release --features janet --bin ray-janet";
 
+    # ray-zig: Zig port. The Janet lib path is baked into the binary as an
+    # rpath at build time (pkg-config --libs-only-L janet), so no
+    # LD_LIBRARY_PATH is needed. Ends in `--` so trailing args flow to
+    # the binary, e.g. `rayz --scene scripts/scene.janet`.
+    rayz    = "cd ~/devel/ray-zig && zig build run --";
+    rayzr   = "cd ~/devel/ray-zig && zig build -Doptimize=ReleaseFast run --";
+    rayzb   = "cd ~/devel/ray-zig && zig build -Doptimize=ReleaseFast";
+
     # Fullscreen Emacs live workbench: scene.janet | render image / *janet*.
     # Builds the release binary if missing, then Emacs runs it and connects.
     rays    = "~/devel/ray/scripts/ray-studio";
