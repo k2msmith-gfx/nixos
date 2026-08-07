@@ -82,7 +82,7 @@
        ;;shell             ; simple shell REPL for Emacs
        ;;term              ; basic terminal emulator for Emacs
        ;;vterm             ; almost the best terminal emulation in Emacs
-       ;;ghostel           ; the best terminal emulation in Emacs
+       ghostel           ; the best terminal emulation in Emacs
 
        :checkers
        syntax              ; tasing you for every semicolon you forget
@@ -94,7 +94,7 @@
        ;;biblio            ; Writes a PhD for you (citation needed)
        ;;collab            ; buffers with friends
        ;;debugger          ; stepping through code, to help you add bugs
-       ;;direnv
+       direnv
        ;;docker
        ;;editorconfig      ; let someone else argue about tabs vs spaces
        ;;ein               ; tame Jupyter notebooks with emacs
