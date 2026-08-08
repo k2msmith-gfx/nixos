@@ -75,6 +75,7 @@ in
     pandoc
     viu
     ffmpeg
+    mpv
   ];
 
   programs.bash.sessionVariables.STEEL_HOME = "${config.home.homeDirectory}/.local/share/steel";
