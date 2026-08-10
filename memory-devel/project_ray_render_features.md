@@ -1,6 +1,6 @@
 ---
 name: ray-render-features
-description: "ray rendering-feature roadmap: anti-aliasing DONE, soft shadows DONE (2026-08-08), glTF model loader DONE (2026-08-09, mesh Stage C3), lit-wireframe shader DONE (2026-08-09, uncommitted). Bang-for-buck ranking + follow-ups. Next candidates: texture sampling (glTF stage 2), cylinder, path tracing/GI."
+description: "ray rendering-feature roadmap: anti-aliasing DONE, soft shadows DONE (2026-08-08), glTF model loader DONE (2026-08-09, mesh Stage C3), lit-wireframe shader DONE + MERGED TO MAIN (2026-08-09, origin/main @620aea1). Bang-for-buck ranking + follow-ups. Next candidates: texture sampling (glTF stage 2), cylinder, path tracing/GI."
 metadata: 
   node_type: memory
   type: project
@@ -81,8 +81,15 @@ NOT parallel-safe; scene_from holds JANET_TEST_LOCK. Chose **glTF over OBJ**
   Janet: `:shader :wireframe` + `:wire-color [r g b]` (default black) +
   `:wire-width n` (default 0.01) → shader code 4, `%mat-wire` cfunction,
   `MatBuilder.wire_color/wire_width`. Example
-  `examples/gltf-suzanne-wireframe.janet` (8 spp / 1 shadow-sample, ~10 s).
-  171 tests pass.
+  `examples/gltf-suzanne-wireframe.janet` (8 spp / 1 shadow-sample, 0.003 wire,
+  camera pulled back to fit the ears). 171 tests pass. **Render-perf gotcha
+  (learned here):** the 11k-tri Suzanne at the studio scenes' 64 spp / 16 shadow
+  samples does NOT finish in a debug build within ~10 min; render heavy examples
+  with `cargo run --release …` (~80 s). Light previews (8 spp / 1 shadow) are
+  ~10 s in debug and fine either way. `gltf-suzanne.janet` reframed here
+  (camera z 4.3→5.1, target y 0.55→0.85) to stop the ears clipping;
+  `gltf-suzanne-studio.janet` left alone (intentional 3/4 hero angle, `:at 1.77`,
+  frames fine).
 
 ## Bang-for-buck ranking (2026-08-08, when picking the step after AA)
 Soft shadows was #1 (done). OBJ/model loader was #1 remaining — done as glTF
