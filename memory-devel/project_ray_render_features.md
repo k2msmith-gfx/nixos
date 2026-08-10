@@ -1,6 +1,6 @@
 ---
 name: ray-render-features
-description: "ray rendering-feature roadmap: anti-aliasing DONE, soft shadows DONE (2026-08-08), glTF model loader DONE (2026-08-09, mesh Stage C3). Bang-for-buck ranking + follow-ups. Next candidates: texture sampling (glTF stage 2), cylinder, path tracing/GI."
+description: "ray rendering-feature roadmap: anti-aliasing DONE, soft shadows DONE (2026-08-08), glTF model loader DONE (2026-08-09, mesh Stage C3), lit-wireframe shader DONE (2026-08-09, uncommitted). Bang-for-buck ranking + follow-ups. Next candidates: texture sampling (glTF stage 2), cylinder, path tracing/GI."
 metadata: 
   node_type: memory
   type: project
@@ -60,6 +60,29 @@ NOT parallel-safe; scene_from holds JANET_TEST_LOCK. Chose **glTF over OBJ**
   Example `examples/gltf-suzanne.janet` (Suzanne CC0 UX3D, textures stripped to
   geometry-only ~590KB, `:material-fn` clay override; rendered gltf-suzanne.png).
   175 tests pass (janet), gltf_loader clippy-clean (only pre-existing findings remain).
+
+- **Lit wireframe shader — DONE + MERGED TO MAIN 2026-08-09, `origin/main`
+  @620aea1** (feat `1d4cf76`, suzanne camera-fix `0ab7335`, glass-marbles
+  half-res tweak `ae1b85b`, README `620aea1`). New
+  `ShaderKind::Wireframe { wire_color, width }` in `src/shader.rs`: a normal
+  Lambertian-lit *fill* with triangle edges painted over it in a solid wire
+  color (smoothstep-AA'd on the inner side). Needs a per-hit **distance to
+  nearest triangle edge** — this is the first thing threaded all the way
+  TriHit→LocalHit→Hit into a shader (the UV plumbing the texture stage wants is
+  the same shape, still not done). `Hit.edge_dist: Option<f32>` — `Some` only
+  for meshes; analytic prims (sphere/plane/rect/cuboid) set `None` and render as
+  unbroken fill, so no spurious lines. Edge dist is **precomputed sqrt-free**:
+  each `Triangle` caches its 3 altitudes at build (`Triangle::altitudes`, +12
+  B/tri), so `intersect` only does `min(w·hₐ, u·h_b, v·h_c)` — no per-ray sqrt
+  (user explicitly didn't want heavy per-hit math; fully gating on shader would
+  need a flag through the Geometry trait, not worth it for ~5 flops). Local dist
+  → world via `Shape.edge_scale` = cbrt(|det| of 3×3 block), so `width` is in
+  **world units** (constant thickness regardless of tessellation density).
+  Janet: `:shader :wireframe` + `:wire-color [r g b]` (default black) +
+  `:wire-width n` (default 0.01) → shader code 4, `%mat-wire` cfunction,
+  `MatBuilder.wire_color/wire_width`. Example
+  `examples/gltf-suzanne-wireframe.janet` (8 spp / 1 shadow-sample, ~10 s).
+  171 tests pass.
 
 ## Bang-for-buck ranking (2026-08-08, when picking the step after AA)
 Soft shadows was #1 (done). OBJ/model loader was #1 remaining — done as glTF
