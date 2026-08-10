@@ -1,6 +1,6 @@
 ---
 name: ray-render-features
-description: "ray rendering-feature roadmap: anti-aliasing DONE, soft shadows DONE (2026-08-08), glTF model loader DONE (2026-08-09, mesh Stage C3), lit-wireframe shader DONE + MERGED TO MAIN (2026-08-09, origin/main @620aea1). Bang-for-buck ranking + follow-ups. Next candidates: texture sampling (glTF stage 2), cylinder, path tracing/GI."
+description: "ray rendering-feature roadmap: anti-aliasing DONE, soft shadows DONE (2026-08-08), glTF model loader DONE (2026-08-09, mesh Stage C3), lit-wireframe shader DONE + MERGED TO MAIN (2026-08-09, origin/main @620aea1). Bang-for-buck ranking + follow-ups. DECISION 2026-08-09: texture mapping (glTF stage 2) chosen as NEXT build, bang-for-buck lens. New plans scoped: live-camera (docs/live-camera-plan.md), distance fog (docs/fog-plan.md). Order: 1 textures, 2 fog, 3 live-camera Pillar 1, 4 cylinder, 5 path tracing."
 metadata: 
   node_type: memory
   type: project
@@ -91,10 +91,18 @@ NOT parallel-safe; scene_from holds JANET_TEST_LOCK. Chose **glTF over OBJ**
   `gltf-suzanne-studio.janet` left alone (intentional 3/4 hero angle, `:at 1.77`,
   frames fine).
 
-## Bang-for-buck ranking (2026-08-08, when picking the step after AA)
-Soft shadows was #1 (done). OBJ/model loader was #1 remaining — done as glTF
-(2026-08-09). Remaining candidates, in order:
-1. **glTF texture sampling (loader stage 2)** — SCOPED, plan in
+## Bang-for-buck ranking (reprioritized 2026-08-09; lens = bang-for-buck)
+**DECISION 2026-08-09 (user): texture mapping is the NEXT build; roadmap ordered
+for bang-for-buck.** Soft shadows / glTF loader / wireframe done. Two NEW plans
+scoped this session and slotted into the ranking: **live interactive camera**
+(`docs/live-camera-plan.md`, uncommitted→ committed @215e968/@e5b8aea — move the
+camera by mouse from Emacs while progressively rendering; 3 pillars: retain
+Scene + decouple camera [Pillar 1, workflow multiplier + PT-viewport prereq],
+interruptible tiled render thread w/ generation epoch, coarse-to-fine +
+sample-accumulate; forward-compat w/ path tracing documented — 4 accumulator
+constraints) and **distance fog** (`docs/fog-plan.md`, few-line quick win, slots
+into sky/ambient scene-param pattern). Bang-for-buck order now:
+1. **glTF texture sampling (loader stage 2) — CHOSEN NEXT (2026-08-09).** SCOPED, plan in
    `docs/texture-mapping-plan.md` (@def201f), not built. 6 stages: thread `uv`
    through LocalHit/Hit, `src/texture.rs` (bilinear+wrap), Scene-owned texture
    table + `Material` handle slot, `resolve_albedo` in shaders, glTF image load,
@@ -106,9 +114,18 @@ Soft shadows was #1 (done). OBJ/model loader was #1 remaining — done as glTF
    only** in phase 1 (metallic-rough needs per-hit resolve in BOTH shader+
    integrator since reflectivity is integrator-read; normal maps need the TANGENT
    attr we drop). UV storage (Triangle/TriHit) already in place from stage 1.
-2. **Cylinder primitive** — low ROI (already 6+ primitives); a quick low-stakes
+2. **Distance fog** — SCOPED, plan in `docs/fog-plan.md`, not built. Cheap
+   quick win (a few lines), blend surface color toward a fog color by ray
+   distance; slots into the `sky`/`ambient`/`max_depth` scene-param pattern.
+   Can slot in parallel to #1 anytime.
+3. **Live camera — Pillar 1 (retain Scene + decouple camera)** — SCOPED,
+   `docs/live-camera-plan.md`. The infrastructure pick: kills the per-render
+   BVH-rebuild (build_scene resets + re-runs the scene fn every render), so it
+   speeds the everyday edit→render loop, and is the prerequisite for a
+   progressive / PT viewport. Independent of the interactive part.
+4. **Cylinder primitive** — low ROI (already 6+ primitives); a quick low-stakes
    win only.
-3. **Path tracing / global illumination** — SCOPED, plan in
+5. **Path tracing / global illumination** — SCOPED, plan in
    `docs/path-tracing-plan.md` (@e0bd64b), not built. Highest ceiling +
    difficulty. Key design: a **second integrator alongside Whitted**, selectable
    via `scene.integrator` enum (default Whitted → existing renders byte-identical)
