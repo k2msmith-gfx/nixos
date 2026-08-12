@@ -48,7 +48,7 @@ NOT parallel-safe; scene_from holds JANET_TEST_LOCK. Chose **glTF over OBJ**
   One glTF primitive → one TriangleMesh → one Shape (node's composed world Mat4 into
   Shape::new — reuses existing transform/normal-matrix machinery, zero Scene/render/BVH
   changes). PBR→Material: base_color→albedo, metallic→tinted reflectivity,
-  roughness→BlinnPhong shininess (2/α⁴−2, clamped), shader BlinnPhong. Geometry:
+  roughness→BlinnPhong shininess (2/α⁴−2, clamped), shader BlinnPhong. [UPDATE 2026-08-12: this flattening DROPS normal/MR/occlusion maps + the metallic/roughness *quantities* — the PBR plan below preserves them.] Geometry:
   Triangle gained uv0/uv1/uv2 (with_uvs builder), TriHit.uv (interp), from_indexed
   gained `uvs: Option<&[Vec2]>` param — **UVs stop at TriHit, NOT threaded to
   LocalHit/Hit/shaders** (texture *sampling* is the deferred next stage; UV plumbing
@@ -148,3 +148,56 @@ into sky/ambient scene-param pattern). Bang-for-buck order now:
 - **Perf:** `Scene::occluded` still runs a full closest-hit BVH search; a
   dedicated any-hit traversal would pay off much more now that soft shadows
   multiply shadow-ray count (already flagged in scene.rs + the plan's Caveats).
+
+## Update 2026-08-12 — textures + fog DONE; RE-SEQUENCED; PBR + interactive editor scoped
+
+- **DONE since the 2026-08-09 ranking:** glTF **texture mapping** (base color,
+  loader stage 2) shipped; **distance fog** shipped (`34b0ef7`, Beer-Lambert
+  `Scene::apply_fog`, true no-op at density 0). Ranking items #1 and #2 complete.
+- **Two NEW plan docs (committed, origin/main @`aa6baac`):**
+  `docs/pbr-materials-plan.md` + `docs/interactive-editor-plan.md` (the latter has
+  a References section). They join the pre-existing `path-tracing-plan.md` +
+  `live-camera-plan.md`.
+- **RE-SEQUENCING DECISION (2026-08-12)** — supersedes the old "3. live-camera
+  Pillar 1 … 5. path tracing" tail:
+  1. **Interactive-editor Phase A** (retain Scene + decouple camera + `set-camera!`)
+     — the accelerator; kills the per-render BVH rebuild, compounds on all later
+     work incl. PBR tuning; low-risk, synchronous, byte-identical. Unconditional
+     next step.
+  2. **Editor Phase B** — wireframe rasterizer.
+  3. **PBR** — data model + normal mapping.
+  4. THEN decide the realism track: heavy editor Phases C–F **vs** the
+     path-tracing reference integrator.
+  Flip B↔PBR by near-term goal (image-quality-now → PBR first; tooling → B first).
+  A+B is a severable low-risk synchronous slice worth landing alone.
+- **Interactive editor = live camera + wireframe editor unified as ONE
+  coarse-to-fine producer ladder:** rung 0 = instant **BVH-free** wireframe
+  (moving/editing) → rung 1 = coarse trace → rung 2 (finest) = full-res
+  sample-progressive trace, converging to the deterministic one-shot `render()`.
+  One render thread picks a producer by generation-epoch + idle state; **only
+  trace producers touch the accumulator**. Editor **generates Janet code**
+  (round-trips via `scripting::eval_string`). Design calls: wireframe renders to a
+  **framebuffer → Emacs image buffer** (NO winit/egui/wgpu — GUI stack collapsed;
+  software line rasterizer, **zero new deps**: `imageproc`+`ab_glyph` already in
+  `film.rs`); `Camera::project` = exact inverse of `Camera::ray` (pixel-exact
+  registration; **near-plane clip is the one gotcha**); gizmos = projected line
+  segments + 2D hit-test (no gizmo crate); batch vs live = the render thread is a
+  **coordinator NOT the parallelism** (both use all cores via Rayon; two entry
+  points over one kernel; batch byte-identical).
+- **PBR = data-vs-shading split:** do the *data model* (metallic/roughness scalars
+  + normal/MR/occlusion map handles, additive & inert) + **normal mapping** NOW;
+  **defer the GGX/Fresnel BRDF to path-tracing Stage E** (reads those fields; the
+  two plans cross-reference).
+  - **Validation-asset gotcha:** every bundled `assets/models/*.gltf` is
+    texture-trimmed (base-color + emissive only) — none exercise normal-map/GGX
+    paths; re-fetch maps from Khronos glTF-Sample-Assets. **SciFiHelmet = the
+    target** (upstream normal+MR+AO, **CC0**). DamagedHelmet has full upstream maps
+    but is **CC BY-NC 4.0** — the one non-CC0 asset in the repo. ToyCar declares
+    clearcoat/transmission/sheen (deferred). VirtualCity (`~/Documents/devel/vc`)
+    is flat-textured (metallic 0, occlusion-only) — not a PBR showcase.
+- **Photon mapping considered & DEFERRED (2026-08-12):** path tracing is better
+  de-risked (clean `radiance` seam, unbiased → crisp furnace test) vs photon
+  mapping (consistent-but-biased, needs a point-kNN structure + two-pass
+  restructure). A **caustic-only** photon map is the targeted alt IF caustics
+  through the existing glass/dispersion become the goal. No photon-mapping doc.
+- Also: user committed Barcelona-chair procedural-mesh examples (`5825b4e`).
