@@ -30,7 +30,7 @@ they can't observe a Janet-side mutation.
 `(render)` returns to its `(set-camera ...)`. Consequence: the live camera is
 NOT saved. Accepted for now.
 
-**A2 / B1 / B2 DONE + pushed to main 2026-08-12 (`origin/main` @`2a80c3c`).**
+**A2 / B1 / B2 DONE + pushed to main (`origin/main` @`fd86e8d`, 2026-08-13).**
 A2 = `shade_pixel` extracted + `Tile`/`render_tiled(…, cancel)`; batch `render()`
 stays on the flat `par_iter_mut` path. B1 = `Camera::project`/`clip_segment`/
 `NEAR`. B2 = `src/wireframe.rs` (rung 0), three commits: `8e97a2d` rasterizer,
@@ -51,12 +51,41 @@ stays on the flat `par_iter_mut` path. B1 = `Camera::project`/`clip_segment`/
   Janet's out-of-line wrappers and `janet_wrap_boolean` is a macro.
 - Speeds: helmet 3.3 ms drawn vs ~25 s traced; primitives 1.3 ms vs 333 ms.
 
-**Deferred, recorded in the plan's new `## Deferred` section:** hidden-line
+**Wireframe draws EVERYTHING as of `d57d332` (2026-08-13).** The meshes-only
+first cut was wrong in practice — `scripts/scene.janet` drew 2 of its 11 shapes,
+so C-c w looked broken on the default scene. Analytic prims now supply
+`Geometry::wireframe_proxy` (a coarse tessellated stand-in used ONLY by the
+rasterizer; `intersect_local` stays exact, asserted by a proxied sphere still
+hitting at radius 1). Infinite planes get `Plane::ground_grid` instead —
+**cell size from the scene diagonal, not camera height** (height alone puts
+10-unit cells under a 6-unit subject once you pull back), faded ink since it is
+context and there is no HLR. Consequence: the mesh twins are no longer needed
+for visibility, only for a deliberately faceted look.
+
+**Two clipper bugs fixed there, invisible until a line spans the camera:**
+`clip_segment` aimed at exactly `NEAR`, but `view_depth` at that point is a dot
+product of near-total cancellation carrying ~1e-7 noise → landed *below* NEAR
+half the time and `project` refused the clipper's own output. Now `CLIP_DEPTH =
+NEAR * 2`. And `to_pixel` rejected huge coordinates (i32-wrap guard), throwing
+away the on-screen part too — now 2D Liang–Barsky clipping. Together they
+dropped every converging grid line: a grid with no perspective.
+
+**PREDICTION for C1/C2 (untested, recorded in the plan under C2):** silhouette
+edges are recomputed against the eye per frame, so on smooth meshes the drawn
+set changes continuously and edges pop in/out — static frames fine, drags may
+shimmer. Creases/boundaries are view-independent and stay put. The deferred
+all-edges mode is view-independent and cannot crawl, so it may be the *steadier*
+drag preview on modest meshes — counter-intuitive, worth comparing once C2 makes
+it observable.
+
+**Deferred, recorded in the plan's `## Deferred` section:** hidden-line
 removal (back-face edge culling is the cheap 80% before a z-buffer pre-pass,
 which would change rung 0 from O(visible edges) to O(pixels×triangles)) and an
 all-edges mode — where the trap is that **`:crease-angle 0` is NOT all-edges and
 no threshold can be**: coplanar faces meet at exactly 0, so a flat quad's
 diagonal is unreachable (cuboid stays 12/18 edges, rect 4/5, at any threshold).
+User decision 2026-08-13: all-edges **on hold until the remaining phases land**,
+then revisited — it is a first-class diagnostic output, not just a stand-in.
 
 **Next: Phase C1** — render thread + `LiveState`, where the toggle stops being a
 manual key and becomes the state machine's automatic choice during a drag.
