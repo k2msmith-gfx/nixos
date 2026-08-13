@@ -87,6 +87,30 @@ diagonal is unreachable (cuboid stays 12/18 edges, rect 4/5, at any threshold).
 User decision 2026-08-13: all-edges **on hold until the remaining phases land**,
 then revisited — it is a first-class diagnostic output, not just a stand-in.
 
+**Maya-style camera controls DONE + pushed to main (`origin/main` @`e1a91af`,
+2026-08-13) — the client-facing half of Phase C.** `scripts/live.janet` now has
+`(orbit! dx dy)` / `(pan! dx dy)` / `(dolly! d)` taking **raw mouse deltas in
+pixels**, so any client (ray-view, Emacs, a future GUI) only reports the drag and
+does zero 3D math — ray owns the feel. Pure Janet, built on the prelude's
+`vsub`/`vcross`/`vlen`/… (no Rust). orbit = spherical tumble about `:target`
+(dx→yaw about world-up, dy→pitch about view-horizontal), radius preserved, pitch
+clamped shy of the poles (no flip/roll); pan = eye+target slide scaled by
+distance; dolly = exponential distance scale, clamped at `*min-dist*`, never
+crosses target. Policy vars `*orbit-speed*`/`*pan-speed*`/`*dolly-speed*`/
+`*min-dist*`/`*el-limit*`, live-tweakable (negative speed inverts). **Math is
+Y-up only** (matches `set-camera`'s default + every bundled scene).
+
+**KEY divergence from A1's "live camera NOT saved":** each helper **mutates
+`*camera*` in place** *then* fires `set-camera!` for the fast no-rebuild redraw.
+Mutating `*camera*` is what makes successive drag events **accumulate** (each
+reads the prior pose, not the scene's declared one) AND makes the move **persist**
+— a later full `(render)` re-reads `*camera*` (`scene.janet:129`), so unlike a
+bare `set-camera!` these controls stick. Tested via `boot_with_live` (prelude +
+live.janet): accumulation ("two 45° yaws == one 90°"), radius preservation,
+pitch/dolly clamps, pan coupling — each reduced to a tolerance `=> true`.
+Terminal mouse-capture plumbing (xterm `1002`+`1006` → `dx,dy` → these calls over
+TCP 4007) is still a Phase-C task; ray-view is currently write-only (no back-channel).
+
 **Next: Phase C1** — render thread + `LiveState`, where the toggle stops being a
 manual key and becomes the state machine's automatic choice during a drag.
 
