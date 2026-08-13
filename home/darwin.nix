@@ -34,6 +34,17 @@
       # `rays`/ray-studio starts instantly instead of building on first launch.
       rayjb   = "cd ~/devel/ray && nix develop .#janet -c cargo build --release --features janet --bin ray-janet";
 
+      # ray-view: WezTerm/kitty-native terminal render window (kitty graphics
+      # protocol under WezTerm/kitty/Ghostty, sixel/iTerm2/half-block elsewhere).
+      # Pure Rust and independent of `janet` — no nix shell needed. Release for
+      # smooth in-place repaint. Ends in `--`, so trailing args flow to the
+      # binary, e.g. `rayv 4010` or `rayv host:4008`. Pair with a `--tcp`
+      # ray-janet, whose image-push server it dials (default port 4008).
+      rayv    = "cd ~/devel/ray && cargo run --release --features view --bin ray-view --";
+      # Build (not run) the release ray-view binary — e.g. to pre-build it so
+      # `rayv` starts instantly instead of compiling on first launch.
+      rayvb   = "cd ~/devel/ray && cargo build --release --features view --bin ray-view";
+
       # Fullscreen Emacs live workbench: scene.janet | render image / *janet*.
       # Builds the release binary if missing, then Emacs runs it and connects.
       rays    = "~/devel/ray/scripts/ray-studio";
