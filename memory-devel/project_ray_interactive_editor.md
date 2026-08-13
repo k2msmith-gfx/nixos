@@ -1,6 +1,6 @@
 ---
 name: project_ray_interactive_editor
-description: ray interactive editor (docs/interactive-editor-plan.md) — A1 done; design decisions reached in conversation that the plan doc does NOT record
+description: ray interactive editor (docs/interactive-editor-plan.md) — A1/A2/B1/B2 done+pushed; design decisions reached in conversation that the plan doc does NOT record
 metadata: 
   node_type: memory
   type: project
@@ -29,6 +29,37 @@ they can't observe a Janet-side mutation.
 **Precedence:** scene file stays authoritative for the pose — the next
 `(render)` returns to its `(set-camera ...)`. Consequence: the live camera is
 NOT saved. Accepted for now.
+
+**A2 / B1 / B2 DONE + pushed to main 2026-08-12 (`origin/main` @`2a80c3c`).**
+A2 = `shade_pixel` extracted + `Tile`/`render_tiled(…, cancel)`; batch `render()`
+stays on the flat `par_iter_mut` path. B1 = `Camera::project`/`clip_segment`/
+`NEAR`. B2 = `src/wireframe.rs` (rung 0), three commits: `8e97a2d` rasterizer,
+`9ad1d83` mesh twins, `2a80c3c` toggle+Emacs.
+
+**B2 facts worth not rediscovering:**
+- `TriangleMesh` now **retains `positions`/`indices`** (chosen over rederiving
+  shared edges by position-matching). `EdgeTable` + `edges_welded_auto()`;
+  welding is REQUIRED — a `uv_sphere`'s duplicated seam column leaves 116
+  boundary edges and inks a spurious meridian.
+- **Only meshes have edges** → analytic prims are absent from the drawing. Hence
+  the mesh twins `add-cuboid-mesh`/`add-rect-mesh`/`add-cone` (+ existing
+  `add-sphere-mesh`), each taking its twin's args in the same local space.
+  `add-plane` gets NO twin (infinite ⇒ no meaningful extent).
+- `(toggle-wireframe!)` (C-c w) flips the **retained** scene like `set-camera!`;
+  `set-wireframe` is the scene-building form and needs a full rebuild.
+- `%toggle-wireframe!` returns a **number, not a boolean** — bindgen only sees
+  Janet's out-of-line wrappers and `janet_wrap_boolean` is a macro.
+- Speeds: helmet 3.3 ms drawn vs ~25 s traced; primitives 1.3 ms vs 333 ms.
+
+**Deferred, recorded in the plan's new `## Deferred` section:** hidden-line
+removal (back-face edge culling is the cheap 80% before a z-buffer pre-pass,
+which would change rung 0 from O(visible edges) to O(pixels×triangles)) and an
+all-edges mode — where the trap is that **`:crease-angle 0` is NOT all-edges and
+no threshold can be**: coplanar faces meet at exactly 0, so a flat quad's
+diagonal is unreachable (cuboid stays 12/18 edges, rect 4/5, at any threshold).
+
+**Next: Phase C1** — render thread + `LiveState`, where the toggle stops being a
+manual key and becomes the state machine's automatic choice during a drag.
 
 **Two shared prerequisites for lights/shapes/save (the real next work):**
 1. **Addressing** — `%add-*` returns nil and `Scene::new` partitions
