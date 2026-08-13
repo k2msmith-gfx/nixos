@@ -24,3 +24,4 @@
 - [ray set-sky gradient](reference_ray_set_sky.md) — set-sky(bottom, top): first=nadir a=0, second=zenith a=1; daytime = pale nadir + deep-blue zenith (easy to reverse accidentally)
 - [Janet cond + material gotcha](reference_janet_cond_material.md) — (cond ...) with (material ...) branches fails for per-leaf randomness; use nested (if ...) chains instead
 - [ray channel clipping](reference_ray_channel_clipping.md) — light × albedo > 1.0 clips channels; orange can render yellow/green if G clips; keep sun < 1/max_albedo_channel; use lambertian for saturated leaves
+- [ray-view terminal rendering](reference_ray_view_terminal_rendering.md) — on macOS ray-view looks better in iTerm2 than WezTerm; WezTerm's kitty-graphics path breaks up fine detail (baked-in text); likely fit-to-cells downscale, iTerm2 preferred host for now
