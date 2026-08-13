@@ -111,6 +111,14 @@ pitch/dolly clamps, pan coupling — each reduced to a tolerance `=> true`.
 Terminal mouse-capture plumbing (xterm `1002`+`1006` → `dx,dy` → these calls over
 TCP 4007) is still a Phase-C task; ray-view is currently write-only (no back-channel).
 
+**NOT YET TESTED UNDER REAL INPUT (user decision 2026-08-13).** The pose *math*
+is unit-tested, but nobody has driven these with live `dx,dy` mouse events —
+validation deliberately deferred to the Phase-C mouse plumbing. Expect to tune at
+that point: the `*-speed*` magnitudes + signs are pure feel (likely flip a sign
+once you see which way a drag should tumble), and whether `*el-limit*` "stop shy
+of vertical" feels right vs. Maya's over-the-top flip is only judgeable while
+dragging. Treat the values as provisional, not validated.
+
 **Next: Phase C1** — render thread + `LiveState`, where the toggle stops being a
 manual key and becomes the state machine's automatic choice during a drag.
 
