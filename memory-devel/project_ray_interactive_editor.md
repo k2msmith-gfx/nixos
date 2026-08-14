@@ -1,6 +1,6 @@
 ---
 name: project_ray_interactive_editor
-description: ray interactive editor (docs/interactive-editor-plan.md) — A1/A2/B1/B2 done+pushed; design decisions reached in conversation that the plan doc does NOT record
+description: ray interactive editor (docs/interactive-editor-plan.md) — A1/A2/B1/B2 + C1 + C2 done; design decisions reached in conversation that the plan doc does NOT record
 metadata: 
   node_type: memory
   type: project
@@ -141,8 +141,102 @@ once you see which way a drag should tumble), and whether `*el-limit*` "stop shy
 of vertical" feels right vs. Maya's over-the-top flip is only judgeable while
 dragging. Treat the values as provisional, not validated.
 
-**Next: Phase C1** — render thread + `LiveState`, where the toggle stops being a
-manual key and becomes the state machine's automatic choice during a drag.
+**C1 DONE + pushed to main (`origin/main` @`fb63cde`, 2026-08-14; pure
+`cargo test` + full `--features janet` suite green, 322 tests; user
+manually verified end-to-end).** Render thread + `LiveState`
++ broadcast-on-timer. New `src/live.rs` (pure-Rust, NOT janet-gated, so its
+tests run under plain `cargo test`): `LiveState { scene: ArcSwapOption<Scene>,
+width/height: AtomicU32, camera: Mutex<Option<Camera>>, generation: AtomicU64,
+stop, wake_lock+Condvar }` + `run_render_loop(state, broadcast)`. Added
+`arc-swap = "1.7"` dep. The render thread snapshots scene/camera/gen, renders,
+broadcasts, then **parks on the condvar until the generation bumps** (Whitted =
+single pass = converged; no busy spin). Cancellation = gen check between strips.
+- **The "also due here" review items are all done:** `render::render_frame(scene,
+  film)` is the ONE trace-vs-wireframe dispatch (do_render + live loop both call
+  it; was a do_render-only landmine); `wireframe::render_wireframe_into(cam,
+  cache, &mut Film, mode)` writes the caller's film (old `render_wireframe`→Film
+  kept as a thin wrapper). Skipped the `forward()` hoist (plan flagged it "only
+  if profiling says so").
+- **New `render::render_progressive(scene, cam, film, cancel, on_strip)`** —
+  parallel over `STRIP_ROWS=32` scanline bands, cancel between strips, `on_strip`
+  after each. A completed pass is byte-identical to `render()` (tested). Broadcast
+  throttled to ~33 ms (`last = Instant::now()`, NOT `now-interval` — so a fast
+  scene emits ONE settled frame, not a redundant partial+final; this also made
+  the count-based tests deterministic).
+- **Binary wiring:** `(live)` (live.janet, sets `*live-requested*`) → main loop
+  spawns the render thread with an `Arc<ImageServer>` broadcast closure. While
+  live, render requests route to the thread: `scripting::take_pending_camera_only`
+  (pure camera move, no `PENDING_WIREFRAME`) → `set_camera` (NO rebuild — the C1
+  headline); else `scene_for_render()` rebuild → `set_scene`. `scripting::
+  clear_retained()` on entry so a live rebuild always re-runs the scene fn (the
+  retained thread-local is stale in live mode; the live scene lives behind the
+  ArcSwap). broadcast callback carries `(film, ink, settled)`; ink = white/trace
+  or `mode.line`/wireframe; `save-image` works live via a settled-frame snapshot
+  (`LastRender` gained `Clone`, `Film` gained `Clone`).
+- **TEST GOTCHA (cost me 3 failing runs): live loop tests flake under the full
+  parallel suite** because `run_render_loop`'s `par_iter` queues behind dozens of
+  other tests' renders on the GLOBAL rayon pool → a 40×40 render starved >10 s.
+  Fix: tests spawn the loop inside a **dedicated 2-thread `rayon::ThreadPool`**
+  (`pool.install(|| run_render_loop(...))`), immune to global-pool saturation.
+  They pass in isolation regardless; only the contended full run needed this.
+- **Fixed a PRE-EXISTING bug that blocks the C1 feature:** `scripts/scene.janet`
+  set `*camera*` to an immutable **struct** `{…}`, so `orbit!/pan!/dolly!`'s
+  `(put *camera* …)` errored "expected array/table/buffer, got struct" (in live
+  OR sync mode). Now `@{…}` (matches prelude); `get` reads the same so the render
+  is unchanged.
+
+- **BUG FOUND+FIXED during manual test (2026-08-14):** `toggle-wireframe!` in
+  live mode turned wireframe ON but never back OFF (and a `pan!` stayed
+  wireframe). Cause: `%toggle-wireframe!` decides on/off from
+  `current_wireframe()`, which read the (deliberately cleared) `RETAINED` →
+  always saw "off" → always toggled *on*. Fix: new thread-local
+  `LIVE_WIREFRAME: Cell<Option<Option<WireframeMode>>>` in scripting.rs
+  (`None` = not live → fall back to RETAINED; `Some(inner)` = live, current
+  producer) consulted by `current_wireframe` between PENDING and RETAINED;
+  `scripting::set_live_wireframe(scene.wireframe)` called by the binary on every
+  live scene push (start_live + each live rebuild). Non-live path unaffected
+  (LIVE_WIREFRAME stays None). Verified on/off by PNG (wireframe frame ~half the
+  bytes of the traced one).
+
+**C2 DONE + pushed to main (`origin/main` @`6715a30`, 2026-08-14; 323 tests
+green; user-verified live).** (Same commit range also carries a small
+`fix(ray-view)`: Ctrl-C now quits the terminal viewer — explicit SIGINT handler
+via the `ctrlc` crate under the `view` feature, since viuer's raw-mode kitty
+probe left Ctrl-C not terminating.) The automatic coarse-to-fine ladder in
+`run_render_loop`: a traced scene draws the **wireframe proxy while moving**
+(any generation bump within `SETTLE_TIME` = 150 ms) and **traces once settled**;
+an explicit-wireframe scene is drawn at both rungs (unchanged from C1).
+- **State machine is time-based**, not a flag: `LiveState.last_change:
+  Mutex<Instant>` set in `bump_and_notify`; loop computes `moving =
+  last_change.elapsed() < SETTLE_TIME`. New `park_until_change_or(gen, deadline)`
+  (condvar `wait_timeout`) lets the loop sleep between drag frames yet wake at
+  the settle deadline to trace the now-still scene. Converged trace / explicit
+  wireframe still `park_until_change` (indefinite).
+- **Edge cache reused across a drag** (`edge_cache_for`): keyed on `Arc::ptr_eq`
+  of the scene, holds the `Arc` so the address can't be recycled (ABA); rebuilt
+  only on a geometry swap. Camera moves touch no geometry → no EdgeCache rebuild,
+  no BVH rebuild (BVH built once at `set_scene`; camera-dirty = 0 rebuilds is
+  structural + already covered by the C1 scripting test).
+- **Drag wireframe frames are `settled=false`** (transient proxy) so `save-image`
+  never captures them — it only snapshots the converged trace / wireframe-scene
+  final. Ink still discriminates producer (trace=white, wireframe=mode.line);
+  tests use `frame_is_wireframe(ink) = ink != Color::ONE`.
+- **Tests reworked for the ladder** (live.rs): the core
+  `draws_wireframe_while_moving_and_traces_when_idle` (a 25 ms bumper thread
+  holds it on rung 0, then stop → trace); park/wake test switched to a wireframe
+  scene (immediate converge, no ladder-timing race); camera-change test compares
+  only settled TRACE frames; `set_camera_does_not_block` waits for a trace-in-
+  flight (ink==ONE) before pushing. Dedicated-rayon-pool spawn_loop kept.
+- Not built: rung 1 (coarse-res trace as an alternative drag producer, "if the
+  budget allows") — deferred; rung 0 wireframe is the only drag producer for now.
+
+**Not in C2 (next):** D1 = sample accumulation (per-pixel sum/count, HDR,
+monotonic sample counter — the 4 forward-compat constraints in
+docs/live-camera-plan.md). E2 = terminal/Emacs mouse → orbit! plumbing (still
+write-only ray-view). Rung-1 coarse-res drag producer. All-edges wireframe mode
+(now that C2 makes the silhouette crawl observable — revisit per the plan).
+
+Superseded prior "Next: Phase C1" note.
 
 **Two shared prerequisites for lights/shapes/save (the real next work):**
 1. **Addressing** — `%add-*` returns nil and `Scene::new` partitions
