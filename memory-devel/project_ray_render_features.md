@@ -201,3 +201,16 @@ into sky/ambient scene-param pattern). Bang-for-buck order now:
   restructure). A **caustic-only** photon map is the targeted alt IF caustics
   through the existing glass/dispersion become the goal. No photon-mapping doc.
 - Also: user committed Barcelona-chair procedural-mesh examples (`5825b4e`).
+
+**IBL PLANNED 2026-08-14 (docs/ibl-plan.md @3f5c322, NOT built).** Chosen over
+VPLs for GI-look before path tracing: EnvMap (dedicated type, NOT an HDR
+Texture variant — Texture stays RGBA8 by design), Arc on Scene, replaces
+ambient when set, stages = A background/reflections → B cosine-sampled
+occluded irradiance → C luminance-CDF importance sampling → D Poly Haven CC0
+asset + example. Key facts: image crate needs only the "hdr" feature flag;
+soft-shadow sample_offsets loop is the irradiance-loop template; CDF carries
+verbatim into PT's infinite area light. **VPL assessment (recorded, not
+planned):** ~500 lines, real one-bounce color bleed, but 50-80x shadow-ray
+cost and ray's lights have NO distance falloff (shader.rs:186) so VPLs would
+introduce the first physically-weighted lights into a non-physical loop;
+their light-path tracer = photon mapping's pass 1 if ever wanted.

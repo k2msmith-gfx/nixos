@@ -78,6 +78,28 @@ all-edges mode is view-independent and cannot crawl, so it may be the *steadier*
 drag preview on modest meshes — counter-intuitive, worth comparing once C2 makes
 it observable.
 
+**FULL PIPELINE CODE REVIEW 2026-08-14, all fixes merged (@cf4a4a3, 3 commits).**
+Walked Janet surface → FFI/state → dispatch → geometry hooks → edge topology →
+camera → rasterizer. Everything found was fixed in place or recorded in the
+plan's C1 "also due here" block (render_frame library dispatcher; render_wireframe
+writes into caller's Film; forward() hoist). Key invariants NOW TRUE:
+- **Wireframe frames are byte-deterministic** (EdgeTable sorted; was HashMap
+  order → ~0.8% of junction pixels wobbled ≤4/255 between builds). So
+  render-twice-and-cmp / golden hashes are now valid on drawn frames too.
+- Proxies are OnceLock statics (`Option<&'static TriangleMesh>`); trait has NO
+  default — a new primitive (cylinder is queued) must answer drawability
+  explicitly or it won't compile.
+- clip_to_frame is f64 inside (f32 lerp lost ~25px at grid-case magnitudes —
+  lines stopped 15px short of the frame border).
+- WIRE_STYLE is scene-scoped (was leaking palettes across load-scene).
+- Caption ink follows the frame (wireframe captions were white-on-white).
+- camera::NEAR doc carries a domain-of-validity table: view_depth noise =
+  |coords|·1e-7, margin 1e-4 → guarantee inverts past ~1500-unit scenes.
+Traced output byte-identical across the whole review (coral A/B 0 diffs).
+Remaining known-not-fixed: GRID_FADE constant duplicated (prelude 0.62 +
+wireframe.rs), Janet silently ignores misspelled &named keywords, ~10
+pre-existing unresolved rustdoc links repo-wide.
+
 **Deferred, recorded in the plan's `## Deferred` section:** hidden-line
 removal (back-face edge culling is the cheap 80% before a z-buffer pre-pass,
 which would change rung 0 from O(visible edges) to O(pixels×triangles)) and an
