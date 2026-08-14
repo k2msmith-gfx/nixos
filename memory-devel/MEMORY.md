@@ -1,5 +1,6 @@
 # Memory Index
 
+- [Solo project, no PRs](feedback_solo_no_prs.md) — ray & user's repos are solo; merge/ff branches into main locally, don't suggest GitHub PRs
 - [ray AI scene generation](project_ray_ai_scene_generation.md) — goal 3 of ray (AI-generated Janet scenes from NL/reference image); design in docs/ai-scene-generation.md; one-shot Python sidecar built (tools/scene_gen.py, uncommitted), validated offline only; blocked on user getting an Anthropic Console API key (Pro ≠ API); Claude Code can act as the sidecar interim; ray's 3 goals = learn Rust / intro-CG class content / AI scene-gen
 
 - [Embedded lang benchmarks](project_embedded_lang_benchmarks.md) — 6-language Rust embedding benchmark suite; v4 report complete; ECL leads shader-math (0.09 µs), Janet 2nd, Steel best pure-Rust; LuaJIT disqualified (no ARM64 JIT); all ray POCs at Stage 4
