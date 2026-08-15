@@ -133,6 +133,9 @@ in
   xdg.configFile."doom/config.el".source   = ../doom/config.el;
   xdg.configFile."doom/packages.el".source = ../doom/packages.el;
 
+  # Personal ray preferences, loaded on boot by the ray-janet binary.
+  xdg.configFile."ray/init.janet".source   = ../ray/init.janet;
+
   programs.direnv = {
     enable = true;
     nix-direnv.enable = true;
