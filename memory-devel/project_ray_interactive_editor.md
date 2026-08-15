@@ -1,6 +1,6 @@
 ---
 name: project_ray_interactive_editor
-description: ray interactive editor (docs/interactive-editor-plan.md) — A1/A2/B1/B2 + C1 + C2 done; design decisions reached in conversation that the plan doc does NOT record
+description: ray interactive editor (docs/interactive-editor-plan.md) — A1/A2/B1/B2 + C1 + C2 + D1 + D2 + E2 done (E2 committed 2026-08-15) + (unlive); design decisions reached in conversation that the plan doc does NOT record; next = rung-1 coarse trace / all-edges wireframe
 metadata: 
   node_type: memory
   type: project
@@ -230,11 +230,98 @@ an explicit-wireframe scene is drawn at both rungs (unchanged from C1).
 - Not built: rung 1 (coarse-res trace as an alternative drag producer, "if the
   budget allows") — deferred; rung 0 wireframe is the only drag producer for now.
 
-**Not in C2 (next):** D1 = sample accumulation (per-pixel sum/count, HDR,
-monotonic sample counter — the 4 forward-compat constraints in
-docs/live-camera-plan.md). E2 = terminal/Emacs mouse → orbit! plumbing (still
-write-only ray-view). Rung-1 coarse-res drag producer. All-edges wireframe mode
-(now that C2 makes the silhouette crawl observable — revisit per the plan).
+**D1 + D2 + progress bar DONE + committed to main (`38ff460`, 2026-08-14; 335
+tests green; user-verified live).** The settled rung is now a full coarse-to-fine
+ladder; one squashed commit carries four interlocking pieces plus a camera fix.
+- **D1 sample-progressive accumulation** (`render.rs`): `Accumulator {sum:
+  Vec<Color>, count: Vec<u32>}` (per-pixel, so a cancelled partial pass has no
+  seam — strips at n+1 vs n each divide by their own count); `shade_pixel_
+  progressive` = ONE jittered sample seeded per `(pixel, pass)` (a live-only
+  path — batch `render()`/`shade_pixel` untouched, image tests byte-identical);
+  `accumulate_pass(scene,cam,acc,pass,display,cancel,on_strip)` folds a pass and
+  resolves `sum/count` into the display, returns the pass's RMS change. Loop caps
+  at `MAX_PASSES=256` and **early-parks** once RMSE < `CONVERGE_RMSE=1e-3` (after
+  `MIN_PASSES_BEFORE_PARK=2`). HDR kept un-clamped; PPM-encode clamp *is* the
+  tone-map (the display divide is where Reinhard/ACES slots in later).
+- **D2 resolution coarse-to-fine** (`render.rs render_coarse_preview` + live
+  loop): before full-res, paint `COARSE_SCALES=[16,8,4]` previews (1 spp, upscaled
+  nearest-neighbour, strip-cancellable). Whole composition in <1 s; NO `film.clear`
+  — the full-res sweep paints over the blurry base, not black.
+- **Progress bar** (`film.rs to_ppm_annotated_progress` + `draw_progress_bar`):
+  5px red overlay across the top, composited at PPM-encode time ONLY (never into
+  `Film.pixels`, so saves/settled frames stay clean; >=1.0 or <=0 draws nothing).
+  `live.rs refine_progress(completed_passes, strip_frac, rmse, r_hi)`: coarse
+  ladder + first pass share `[0, FIRST_PASS_WEIGHT=0.25]` (coarse = first half,
+  full-res sweep = second half), later passes advance `[0.25, 1]` by **log-RMSE
+  convergence** (r_hi = first completed pass's change), hitting 1 at park.
+- **Wireframe on every camera change** (`live.rs`): new `wireframe_shown_for:
+  Option<u64>` → the proxy draws once per NEW generation (`first_sight`), not just
+  inside the `moving` (bump-within-150ms) window. WHY: a single discrete REPL
+  `orbit!`/`pan!` is ONE bump; on a heavy scene, cancelling the in-flight trace
+  outlasts SETTLE_TIME, so the old logic re-checked `moving` too late and skipped
+  the proxy entirely. Now you always see the new pose first.
+- **Also fix(scripting): `set-camera` (prelude.janet) now syncs the Janet
+  `*camera*` table** (`put` :eye/:target/:up/:fov/:aperture/:focus-dist). WAS a
+  real bug: example scenes declare their camera via `(set-camera ...)`, which set
+  only the engine camera → `*camera*` stayed at the prelude default (eye [0 0 1],
+  r=1) → first `orbit!` flung the eye next to the origin → **all-sky (blue)**
+  frame. scene.janet dodged it by separately `(set *camera* ...)`. Regression
+  test `set_camera_syncs_the_camera_table_...` drives the real `(set-camera ...)`
+  (old camera tests seeded `*camera*` directly, which is why they missed it).
+
+**KNOWN residual limits at this commit (deliberately not fixed — wait for E2):**
+1. **Cancellation latency**: the wireframe/coarse appears only after the current
+   in-flight STRIP finishes (~1 s on glass-marbles). Snappier = finer/adaptive
+   strips. 2. **Heavy scenes never park**: glass fireflies keep per-pass RMSE
+   above CONVERGE_RMSE → refine to MAX_PASSES=256 → always mid-trace when you
+   move (which is why #1 bites every time). Light scenes (soft-shadows) converge
+   and park, so moves feel instant. **User decision 2026-08-14: defer testing/
+   tuning these until E2 mouse plumbing lands** — a continuous drag streams bumps
+   (the case the wireframe rung was built for), making both easy to judge; discrete
+   REPL commands are the degenerate one-bump case.
+
+**E2 (Emacs) DONE + pushed to main (`665b78b`, 2026-08-15; 19 elisp tests
+green; user drag-tested).** Two bugs surfaced on the first real drag-test and
+were fixed before commit:
+- **Doom `evil-mode` stole `down-mouse-1`** (region select → "Mark set") because
+  the gesture keymap was only a buffer-local map, which sits BELOW
+  emulation-mode-map-alists. Fix: stamp `ray-studio-image-map` as a `keymap`
+  **text property on the inserted image** (in `ray-studio--display-frame`, applied
+  each frame paint) — a text-property keymap outranks minor-mode/emulation maps.
+  Wheel already worked (evil doesn't bind it), which is what pinpointed the cause.
+- **`janet> nil` flood**: every camera setter returns nil, and forms went over
+  `janet--proc` (the visible REPL socket). Fix: route gestures over a dedicated
+  **silent eval connection** (`ray-studio--camera-proc`, `make-network-process`
+  to the same multi-client server on `janet-live-port`, `:filter #'ignore`),
+  opened lazily on first gesture, gated on `(janet--proc)` live, torn down with
+  the image stream. Typed-REPL + editor-send feedback (results AND errors) is
+  unaffected — separate sockets, replies route back to origin; only the shared
+  single Janet eval thread serializes. New ert `...routes-over-the-silent-camera-
+  channel`. **(unlive) added same session (`940aaf1`)** — leaves live mode back
+  to synchronous rendering (see [[project_ray_next_steps]] / commit); camera pose
+  kept via *camera*.
+- Earlier build notes (pre-fix): `emacs/ray-studio.el` (camera section + `ray-studio-image-map`
+installed on the `*ray-render*` buffer), `emacs/ray-studio-tests.el` (6 new ert),
+`emacs/README.md` (gesture table). 18 elisp tests pass (`scripts/run-elisp-tests`),
+clean byte-compile. **No cargo rebuild** — pure elisp + the existing live.janet
+forms. Design: render-buffer keymap → left-drag `ray-studio-mouse-orbit`,
+middle/`S-`left `-pan`, wheel `-dolly-{in,out}`; `ray-studio-camera-drag` runs a
+`track-mouse`/`read-event` loop, accumulates pixel deltas, ships throttled
+(`ray-studio-camera-throttle` 0.03s) summed `(orbit!/pan! dx dy)` forms via a
+fire-and-forget `ray-studio--send-form` (no *janet* popup; no-op when
+disconnected), flush on release; wheel = one `(dolly! ±ray-studio-dolly-step)`.
+Pure/testable core: `ray-studio--camera-form` (kind dx dy → string) +
+`ray-studio--drag`(struct)/`--drag-step`/`--drag-finish`. ALL 3D math stays in
+Janet (client sends raw pixels). **Expected tuning after drag-test (per the
+long-standing note): signs/feel are unvalidated — flip via *orbit-speed*/
+*pan-speed*/*dolly-speed* live; a Y-only inversion is a one-liner in orbit!
+(scalar *orbit-speed* can't flip one axis).** To test: restart Emacs (Doom loads
+~/devel/ray/emacs/*.el by live path) or kill *ray-render*; M-x ray-studio; send
+(live); drag. This continuous-drag input is also what finally makes the C2
+wireframe-while-moving + cancellation-latency behavior judgeable.
+
+Still open after E2: rung-1 coarse-res drag producer; all-edges wireframe mode.
+(E1 = the orbit!/pan!/dolly! forms, already done — E2 was the mouse plumbing.)
 
 Superseded prior "Next: Phase C1" note.
 
