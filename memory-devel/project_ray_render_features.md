@@ -1,6 +1,6 @@
 ---
 name: ray-render-features
-description: "ray rendering-feature roadmap: anti-aliasing DONE, soft shadows DONE (2026-08-08), glTF model loader DONE (2026-08-09, mesh Stage C3), lit-wireframe shader DONE + MERGED TO MAIN (2026-08-09, origin/main @620aea1). Bang-for-buck ranking + follow-ups. DECISION 2026-08-09: texture mapping (glTF stage 2) chosen as NEXT build, bang-for-buck lens. New plans scoped: live-camera (docs/live-camera-plan.md), distance fog (docs/fog-plan.md). Order: 1 textures, 2 fog, 3 live-camera Pillar 1, 4 cylinder, 5 path tracing."
+description: "ray rendering-feature roadmap: AA, soft shadows, glTF loader, wireframe shader, textures, fog all DONE. DECISION 2026-08-15 (sci-fi/alien-environment lens): post-live-interaction order = 1 IBL, 2 emissive glow (HDR post: exposure/tone-map/bloom, docs/emissive-materials-plan.md), 3 PBR normal maps — together they pre-build every PT prerequisite. Emissive DATA MODEL already fully built; gap is the display pipeline."
 metadata: 
   node_type: memory
   type: project
@@ -214,3 +214,35 @@ planned):** ~500 lines, real one-bounce color bleed, but 50-80x shadow-ray
 cost and ray's lights have NO distance falloff (shader.rs:186) so VPLs would
 introduce the first physically-weighted lights into a non-physical loop;
 their light-path tracer = photon mapping's pass 1 if ever wanted.
+
+## Update 2026-08-15 — sci-fi lens re-prioritization + emissive plan
+
+**PRIORITY DECISION 2026-08-15 (lens = [[user-scifi-interest]]: user primarily
+renders sci-fi/alien environments).** Next three after the live-interaction
+work (editor C/D/E) completes:
+1. **IBL** (`docs/ibl-plan.md`) — alien skies ARE the subject; authored HDR
+   env maps beat gradient params; nothing throwaway (CDF → PT infinite light).
+2. **Emissive glow** (`docs/emissive-materials-plan.md`, NEW this session,
+   uncommitted) — sci-fi's signature look (neon/panels/engines).
+3. **PBR data model + normal mapping** (`docs/pbr-materials-plan.md`) —
+   hard-surface sci-fi; keeps its slot, now 3rd.
+Convergence argument: these three + emissive plan's tone map pre-build ALL of
+path tracing's prerequisites (infinite light, GGX inputs, area-light emitters,
+forced tone-map) → PT becomes "just the integrator". After: volumetric god
+rays = next most sci-fi feature, but heavier. IBL note: env sampling should be
+a per-rung quality knob in the editor ladder.
+
+**Key discovery grounding the emissive plan:** the emissive *data model* is
+ALREADY fully built — `Material.emissive`+`emissive_texture`, glTF
+emissiveFactor/Texture import, Janet `:emissive`, `shader::resolve_emissive`
+added in all 3 shade paths (emitters already show in reflections). The gap is
+the **display pipeline**: everything funnels through `Film::to_rgb8` which
+hard-clamps per channel (= the orange→yellow channel-clip bug). Plan =
+`src/post.rs` `Post{exposure, tone_map, bloom}` on Scene (rides ArcSwap);
+pipeline exposure→bloom→tone-map→quantize→annotate; ToneMap enum
+Clamp(default, byte-identical)|Reinhard(luminance-scaled, hue-preserving)|
+Aces(Narkowicz); bloom = soft-knee + Jimenez mip-chain (radius-independent
+cost); stays display-referred (texture.rs's documented no-sRGB convention —
+linear migration deferred to PT); Stage C folds KHR_materials_emissive_strength
+(gltf crate feature flag) into the existing emissive Color, no new field.
+Stage A alone retires the "keep sun < 1/max_albedo_channel" authoring rule.
