@@ -21,4 +21,14 @@
   };
 
   programs.zsh.enable = true;
+
+  # LibreOffice isn't in nixpkgs for darwin (Linux-only meta.platforms), so we
+  # install it as a Homebrew cask. Requires Homebrew itself to be installed:
+  #   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  # cleanup = "none" leaves any manually-installed brew packages untouched.
+  homebrew = {
+    enable = true;
+    onActivation.cleanup = "none";
+    casks = [ "libreoffice" ];
+  };
 }
