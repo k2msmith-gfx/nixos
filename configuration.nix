@@ -56,14 +56,14 @@
     enable = true;
     settings = {
       default_session = {
-        command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --cmd niri-session";
+        command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --remember-session --sessions /run/current-system/sw/share/wayland-sessions --cmd niri-session";
         user = "greeter";
       };
     };
   };
 
-  # Enable the COSMIC desktop environment
-  #services.desktopManager.cosmic.enable = true;
+  # Enable the COSMIC desktop environment (cosmic-session selectable at login)
+  services.desktopManager.cosmic.enable = true;
 
   # Enable CUPS to print documents.
   services.printing.enable = true;
