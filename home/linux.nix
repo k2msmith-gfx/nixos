@@ -62,6 +62,10 @@
     feh
     thunar
     google-chrome
+
+    # COSMIC system monitor + panel sysinfo applet
+    cosmic-monitor
+    cosmic-ext-applet-sysinfo
   ];
 
   gtk = {
