@@ -4,7 +4,7 @@
   programs.bash.shellAliases = {
     nswitch = "sudo -H darwin-rebuild switch --flake ~/nixos#${nixSystem}";
     nbuild  = "darwin-rebuild build --flake ~/nixos#${nixSystem}";
-    msync   = "cd ~/nixos && git add memory-devel/ && git commit -m 'memory: sync from macOS' && git push && cd -";
+    msync   = "git -C ~/nixos add memory-devel/ && (git -C ~/nixos diff --cached --quiet || git -C ~/nixos commit -m 'memory: sync from macOS') && git -C ~/nixos pull --rebase && git -C ~/nixos push";
   };
 
   programs.zsh = {
@@ -21,7 +21,7 @@
 
       nswitch = "sudo -H darwin-rebuild switch --flake ~/nixos#${nixSystem}";
       nbuild  = "darwin-rebuild build --flake ~/nixos#${nixSystem}";
-      msync   = "cd ~/nixos && git add memory-devel/ && git commit -m 'memory: sync from macOS' && git push && cd -";
+      msync   = "git -C ~/nixos add memory-devel/ && (git -C ~/nixos diff --cached --quiet || git -C ~/nixos commit -m 'memory: sync from macOS') && git -C ~/nixos pull --rebase && git -C ~/nixos push";
       kj      = "lsof -ti :4007 | xargs kill -9";
 
       # ray-janet: build+run inside the `janet` dev shell so JANET_HOME /

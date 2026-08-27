@@ -7,7 +7,9 @@
     ntest   = "sudo nixos-rebuild test --flake ~/nixos#${nixSystem}";
     nbuild  = "sudo nixos-rebuild build --flake ~/nixos#${nixSystem}";
     ncheck  = "sudo nixos-rebuild dry-build --flake ~/nixos#${nixSystem}";
-    msync   = "cd ~/nixos && git add memory-devel/ && git commit -m 'memory: sync from Linux' && git push && cd -";
+    # Commit-if-changed, then pull --rebase, then push: both directions sync,
+    # and a collision stops at the rebase instead of committing conflict markers.
+    msync   = "git -C ~/nixos add memory-devel/ && (git -C ~/nixos diff --cached --quiet || git -C ~/nixos commit -m 'memory: sync from Linux') && git -C ~/nixos pull --rebase && git -C ~/nixos push";
     kj      = "lsof -ti :4007 | xargs kill -9";
 
     # ray-janet: build+run inside the `janet` dev shell so JANET_HOME /
