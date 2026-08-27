@@ -67,6 +67,10 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
 
+;; Start maximized: the frame fills the screen on launch but keeps its title
+;; bar and stays movable (unlike `fullboth', which hides all chrome).
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
 ;; Draggable window borders: mouse-resize any split by dragging its edge.
 ;; `window-divider-default-places' t puts dividers on both the right *and*
 ;; bottom of every window (the default is right-only), so vertical and
