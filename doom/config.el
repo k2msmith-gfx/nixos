@@ -67,6 +67,13 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
 
+;; Draggable window borders: mouse-resize any split by dragging its edge.
+;; `window-divider-default-places' t puts dividers on both the right *and*
+;; bottom of every window (the default is right-only), so vertical and
+;; horizontal splits are both resizable — e.g. the ray-studio three-pane layout.
+(setq window-divider-default-places t)
+(window-divider-mode 1)
+
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
 (setq org-directory "~/org/")
