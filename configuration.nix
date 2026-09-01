@@ -52,17 +52,10 @@
   # Enable the KDE Plasma Desktop Environment.
   # services.desktopManager.plasma6.enable = true;
 
-  services.greetd = {
-    enable = true;
-    settings = {
-      default_session = {
-        command = "${pkgs.tuigreet}/bin/tuigreet --time --remember --remember-session --sessions /run/current-system/sw/share/wayland-sessions --cmd niri-session";
-        user = "greeter";
-      };
-    };
-  };
+  # COSMIC graphical greeter (session dropdown lets you pick COSMIC or Niri at login).
+  services.displayManager.cosmic-greeter.enable = true;
 
-  # Enable the COSMIC desktop environment (cosmic-session selectable at login)
+  # Enable the COSMIC desktop environment.
   services.desktopManager.cosmic.enable = true;
 
   # Enable CUPS to print documents.
