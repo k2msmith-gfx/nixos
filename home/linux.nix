@@ -65,6 +65,10 @@
     thunar
     google-chrome
 
+    # Office / presentations (Macs use native PowerPoint instead)
+    libreoffice-fresh
+    pdfpc
+
     # COSMIC system monitor + panel sysinfo applet
     cosmic-monitor
     cosmic-ext-applet-sysinfo
