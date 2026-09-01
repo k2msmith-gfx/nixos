@@ -69,7 +69,7 @@ Memories sync via `git pull` / `git push` — no extra tooling needed. After add
 
 ## Notable System Details (kevinix)
 
-- Display server: Niri (Wayland compositor), launched via `tuigreet`.
+- Desktops: COSMIC and Niri (Wayland), selectable at login via `cosmic-greeter`.
 - Audio: PipeWire (PulseAudio disabled).
 - Kernel module `lenovo-acpi` loaded; mic LED disabled on boot.
 - `sudo` timeout extended to 60 minutes (`timestamp_timeout=60`).
