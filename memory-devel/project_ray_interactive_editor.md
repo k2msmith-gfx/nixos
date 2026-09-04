@@ -320,6 +320,11 @@ long-standing note): signs/feel are unvalidated — flip via *orbit-speed*/
 (live); drag. This continuous-drag input is also what finally makes the C2
 wireframe-while-moving + cancellation-latency behavior judgeable.
 
+**E2 USER-VALIDATED 2026-08-16: first live drag-test on the r1-material-values
+branch — drag/orbit + resend work; no sign/feel complaints raised** (default
+speeds kept). Camera controls now read the engine pose via %get-camera
+([[ray-retained-scene-api]] R4) — the *camera* shadow table is gone.
+
 Still open after E2: rung-1 coarse-res drag producer; all-edges wireframe mode.
 (E1 = the orbit!/pan!/dolly! forms, already done — E2 was the mouse plumbing.)
 

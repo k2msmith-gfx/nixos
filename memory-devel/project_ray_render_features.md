@@ -1,6 +1,6 @@
 ---
 name: ray-render-features
-description: "ray rendering-feature roadmap: AA, soft shadows, glTF loader, wireframe shader, textures, fog all DONE. DECISION 2026-08-15 (sci-fi/alien-environment lens): post-live-interaction order = 1 IBL, 2 emissive glow (HDR post: exposure/tone-map/bloom, docs/emissive-materials-plan.md), 3 PBR normal maps — together they pre-build every PT prerequisite. Emissive DATA MODEL already fully built; gap is the display pipeline."
+description: "ray rendering-feature roadmap: AA, soft shadows, glTF loader, wireframe shader, textures, fog all DONE. DECISION 2026-08-15 (sci-fi/alien-environment lens): post-live-interaction order = 1 IBL, 2 emissive glow (HDR post: exposure/tone-map/bloom, docs/post-pipeline-plan.md (renamed from emissive-materials-plan 2026-08-27)), 3 PBR normal maps — together they pre-build every PT prerequisite. Emissive DATA MODEL already fully built; gap is the display pipeline."
 metadata: 
   node_type: memory
   type: project
@@ -222,7 +222,7 @@ renders sci-fi/alien environments).** Next three after the live-interaction
 work (editor C/D/E) completes:
 1. **IBL** (`docs/ibl-plan.md`) — alien skies ARE the subject; authored HDR
    env maps beat gradient params; nothing throwaway (CDF → PT infinite light).
-2. **Emissive glow** (`docs/emissive-materials-plan.md`, NEW this session,
+2. **Emissive glow** (`docs/post-pipeline-plan.md (renamed from emissive-materials-plan 2026-08-27)`, NEW this session,
    uncommitted) — sci-fi's signature look (neon/panels/engines).
 3. **PBR data model + normal mapping** (`docs/pbr-materials-plan.md`) —
    hard-surface sci-fi; keeps its slot, now 3rd.
