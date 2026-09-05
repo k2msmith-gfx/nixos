@@ -26,9 +26,9 @@
     # keymaps, mouse dispatch, REPL, AI — lives behind `--features janet`, so
     # like ray-janet it builds+runs inside the `janet` dev shell. winit owns the
     # window (no terminal), so this is a plain run, not a `rays`-style script.
-    # Ends in `--`, so a model path flows to the binary, e.g. `raym foo.glb`.
-    raym    = "cd ~/devel/ray && nix develop .#janet -c cargo run --features janet -p modeler --";
-    raymr   = "cd ~/devel/ray && nix develop .#janet -c cargo run --release --features janet -p modeler --";
+    # Defaults to loading the SciFiHelmet sample model (we cd into the repo
+    # first, so the relative path resolves).
+    raym    = "cd ~/devel/ray && nix develop .#janet -c cargo run --release --features janet -p modeler -- assets/models/SciFiHelmet.gltf";
     # Build (not run) the release modeler binary.
     raymb   = "cd ~/devel/ray && nix develop .#janet -c cargo build --release --features janet -p modeler";
 
