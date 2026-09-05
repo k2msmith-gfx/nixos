@@ -22,6 +22,16 @@
     # `rays`/ray-studio starts instantly instead of building on first launch.
     rayjb   = "cd ~/devel/ray && nix develop .#janet -c cargo build --release --features janet --bin ray-janet";
 
+    # modeler: the Emacs-shaped 3D editor (sibling crate). Its whole UI —
+    # keymaps, mouse dispatch, REPL, AI — lives behind `--features janet`, so
+    # like ray-janet it builds+runs inside the `janet` dev shell. winit owns the
+    # window (no terminal), so this is a plain run, not a `rays`-style script.
+    # Ends in `--`, so a model path flows to the binary, e.g. `raym foo.glb`.
+    raym    = "cd ~/devel/ray && nix develop .#janet -c cargo run --features janet -p modeler --";
+    raymr   = "cd ~/devel/ray && nix develop .#janet -c cargo run --release --features janet -p modeler --";
+    # Build (not run) the release modeler binary.
+    raymb   = "cd ~/devel/ray && nix develop .#janet -c cargo build --release --features janet -p modeler";
+
     # ray-view: terminal render window (kitty graphics protocol under
     # WezTerm/kitty/Ghostty, sixel/iTerm2/half-block elsewhere). Pure Rust and
     # independent of `janet` — no nix shell needed. Release for smooth in-place
